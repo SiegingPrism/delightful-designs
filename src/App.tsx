@@ -7,7 +7,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { applyTheme, getTheme } from "@/lib/theme";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import PlaceholderPage from "./pages/PlaceholderPage.tsx";
+import Tasks from "./pages/Tasks.tsx";
+import Focus from "./pages/Focus.tsx";
+import Habits from "./pages/Habits.tsx";
+import Calendar from "./pages/Calendar.tsx";
+import Rewards from "./pages/Rewards.tsx";
+import Insights from "./pages/Insights.tsx";
+import Settings from "./pages/Settings.tsx";
+import Coach from "./pages/Coach.tsx";
 
 const queryClient = new QueryClient();
 
@@ -24,14 +31,14 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/tasks" element={<PlaceholderPage eyebrow="Plan" title="Tasks" subtitle="Capture, prioritize, and ship." />} />
-            <Route path="/focus" element={<PlaceholderPage eyebrow="Deep Work" title="Focus Mode" subtitle="One task. No distractions." />} />
-            <Route path="/habits" element={<PlaceholderPage eyebrow="Daily" title="Habits" subtitle="Streaks and consistency." />} />
-            <Route path="/calendar" element={<PlaceholderPage eyebrow="Planning" title="Calendar" subtitle="Monthly view with task signals." />} />
-            <Route path="/rewards" element={<PlaceholderPage eyebrow="Gamification" title="Rewards" subtitle="Glow, badges, and unlocks." />} />
-            <Route path="/coach" element={<PlaceholderPage eyebrow="Smart Layer" title="AI Coach" subtitle="Suggestions and adaptive guidance." />} />
-            <Route path="/insights" element={<PlaceholderPage eyebrow="Analytics" title="Insights" subtitle="Patterns from your data." />} />
-            <Route path="/settings" element={<PlaceholderPage eyebrow="You" title="Settings" subtitle="Profile, theme, and integrations." />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/focus" element={<Focus />} />
+            <Route path="/habits" element={<Habits />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/rewards" element={<Rewards />} />
+            <Route path="/coach" element={<Coach />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
