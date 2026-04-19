@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, ListChecks, Timer, Trophy, Sparkles, Settings, CalendarDays, Activity, BarChart3 } from "lucide-react";
+import { Home, ListChecks, Timer, Trophy, Sparkles, Settings, CalendarDays, Activity, BarChart3, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -7,6 +7,7 @@ const items = [
   { to: "/tasks", icon: ListChecks, label: "Tasks" },
   { to: "/focus", icon: Timer, label: "Focus" },
   { to: "/habits", icon: Activity, label: "Habits" },
+  { to: "/skill-tree", icon: Network, label: "Skill Tree" },
   { to: "/calendar", icon: CalendarDays, label: "Calendar" },
   { to: "/insights", icon: BarChart3, label: "Insights" },
   { to: "/rewards", icon: Trophy, label: "Rewards" },
