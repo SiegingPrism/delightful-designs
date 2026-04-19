@@ -70,12 +70,16 @@ Full architecture in [`tech/architecture.md`](./tech/architecture.md).
 ## Read these in order
 1. [`product/vision.md`](./product/vision.md) — what we're building and why
 2. [`product/user_personas.md`](./product/user_personas.md) — who it's for
-3. [`product/core_features.md`](./product/core_features.md) — feature tiers
-4. [`product/app_flow.md`](./product/app_flow.md) — every flow as Mermaid
-5. [`system-design/gamification.md`](./system-design/gamification.md) — XP, levels, skill trees, Recovery Missions
-6. [`ai/recommendation-engine.md`](./ai/recommendation-engine.md) — how the Coach actually works
-7. [`tech/architecture.md`](./tech/architecture.md) + [`tech/api-design.md`](./tech/api-design.md) — stack and target schema
-8. [`design-system/`](./design-system) — tokens and rules
+3. [`product/mvp.md`](./product/mvp.md) — **the 8 things v1 ships, and what's cut**
+4. [`product/core_features.md`](./product/core_features.md) — full feature tiers
+5. [`product/app_flow.md`](./product/app_flow.md) — every flow as Mermaid
+6. [`system-design/core-loop.md`](./system-design/core-loop.md) — **the loop the entire product is built around**
+7. [`system-design/gamification.md`](./system-design/gamification.md) — XP, levels, skill trees, freeze tokens
+8. [`ai/recommendation-engine.md`](./ai/recommendation-engine.md) — Coach inputs / processing / outputs
+9. [`tech/architecture.md`](./tech/architecture.md) + [`tech/api-design.md`](./tech/api-design.md) — stack + target schema
+10. [`tech/database-schema.md`](./tech/database-schema.md) — every table, column, index, RLS rule
+11. [`tech/ui-action-map.md`](./tech/ui-action-map.md) — every button → store action → data event
+12. [`design-system/`](./design-system) — tokens and rules
 
 ## Roadmap
 **Now (v1, shipped)** — All 10 pages functional, local-first, AI Coach live, design system locked.
