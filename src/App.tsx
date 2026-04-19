@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { applyTheme, getTheme } from "@/lib/theme";
+import { useAppStore } from "@/lib/store";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Tasks from "./pages/Tasks.tsx";
@@ -15,10 +17,13 @@ import Rewards from "./pages/Rewards.tsx";
 import Insights from "./pages/Insights.tsx";
 import Settings from "./pages/Settings.tsx";
 import Coach from "./pages/Coach.tsx";
+import SkillTree from "./pages/SkillTree.tsx";
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const onboardedAt = useAppStore((s) => s.onboardedAt);
+
   useEffect(() => {
     applyTheme(getTheme());
   }, []);
@@ -28,20 +33,25 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/focus" element={<Focus />} />
-            <Route path="/habits" element={<Habits />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="/coach" element={<Coach />} />
-            <Route path="/insights" element={<Insights />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        {!onboardedAt ? (
+          <OnboardingWizard />
+        ) : (
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/focus" element={<Focus />} />
+              <Route path="/habits" element={<Habits />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/rewards" element={<Rewards />} />
+              <Route path="/skill-tree" element={<SkillTree />} />
+              <Route path="/coach" element={<Coach />} />
+              <Route path="/insights" element={<Insights />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );
