@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
-import { Moon, Sun, Download, Upload, Trash2, User } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
-import { applyTheme, getTheme, type Theme } from "@/lib/theme";
+import { applyTheme, getTheme, isThemeUnlocked, THEMES, type Theme } from "@/lib/theme";
+import { levelFromXp } from "@/lib/gamification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const SettingsPage = () => {
   const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory } = useAppStore();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useState<Theme>("light");
+  const userLevel = levelFromXp(totalXP).level;
 
   useEffect(() => { setTheme(getTheme()); }, []);
 
@@ -48,7 +51,15 @@ const SettingsPage = () => {
     setTimeout(() => window.location.reload(), 800);
   };
 
-  const switchTheme = (t: Theme) => { setTheme(t); applyTheme(t); };
+  const switchTheme = (t: Theme) => {
+    if (!isThemeUnlocked(t, totalXP)) {
+      const meta = THEMES.find((m) => m.id === t)!;
+      toast.error(`${meta.label} unlocks at level ${meta.unlockLevel}. You're level ${userLevel}.`);
+      return;
+    }
+    setTheme(t); applyTheme(t);
+    toast.success(`Theme: ${THEMES.find((m) => m.id === t)?.label}`);
+  };
 
   return (
     <AppShell>
