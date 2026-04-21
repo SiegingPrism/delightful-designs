@@ -110,6 +110,9 @@ interface AppState {
   // User
   setUserName: (name: string) => void;
   setDailyFocusTarget: (min: number) => void;
+
+  // Dev / debug
+  grantDebugXp: (amount: number, reason?: string) => void;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -292,6 +295,21 @@ export const useAppStore = create<AppState>()(
 
         setUserName: (name) => set({ userName: name }),
         setDailyFocusTarget: (min) => set({ dailyFocusTargetMin: min }),
+
+        grantDebugXp: (amount, reason = "Debug XP grant") => {
+          const event: XPEvent = {
+            id: uid(),
+            amount,
+            reason,
+            branch: "craft",
+            sourceType: "login",
+            at: new Date().toISOString(),
+          };
+          set((s) => ({
+            totalXP: s.totalXP + amount,
+            xpHistory: [event, ...s.xpHistory].slice(0, 200),
+          }));
+        },
       };
     },
     { name: "flowsphere-store", version: 2 },

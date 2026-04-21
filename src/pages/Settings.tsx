@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Upload, Trash2, User, Lock, Check } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check, Beaker } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const SettingsPage = () => {
-  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory } = useAppStore();
+  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp } = useAppStore();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useState<Theme>("light");
   const userLevel = levelFromXp(totalXP).level;
@@ -139,6 +139,77 @@ const SettingsPage = () => {
             <Button variant="destructive" onClick={resetAll} className="ml-auto"><Trash2 className="w-4 h-4 mr-1" />Reset all data</Button>
           </div>
         </FadeIn>
+
+        {import.meta.env.DEV && (
+          <FadeIn delay={0.13} className="glass-card lg:col-span-2 border-warning/40 border-2 border-dashed bg-warning/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Beaker className="w-4 h-4 text-warning" />
+              <p className="text-xs uppercase tracking-wider text-warning font-bold">Dev tools</p>
+              <Chip tone="warning">Hidden in production</Chip>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              Quick XP grants for testing the level curve and theme unlocks. Aurora unlocks at L3 (540 XP), Carbon at L7 (2940 XP), Solar at L12 (8640 XP).
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const needed = Math.max(0, 540 - totalXP);
+                  if (needed === 0) { toast.info(`Already at level ${userLevel}.`); return; }
+                  grantDebugXp(needed, "Debug: jump to L3");
+                  toast.success(`+${needed} XP → level 3 (Aurora unlocked)`);
+                }}
+              >
+                Jump to L3 (Aurora)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const needed = Math.max(0, 2940 - totalXP);
+                  if (needed === 0) { toast.info(`Already at level ${userLevel}.`); return; }
+                  grantDebugXp(needed, "Debug: jump to L7");
+                  toast.success(`+${needed} XP → level 7 (Carbon unlocked)`);
+                }}
+              >
+                Jump to L7 (Carbon)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const needed = Math.max(0, 8640 - totalXP);
+                  if (needed === 0) { toast.info(`Already at level ${userLevel}.`); return; }
+                  grantDebugXp(needed, "Debug: jump to L12");
+                  toast.success(`+${needed} XP → level 12 (Solar unlocked)`);
+                }}
+              >
+                Jump to L12 (Solar)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  grantDebugXp(100, "Debug: +100 XP");
+                  toast.success("+100 XP");
+                }}
+              >
+                +100 XP
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem("flowsphere-unlocked-themes-seen");
+                  toast.success("Unlock celebrations reset — refresh to re-trigger modals.");
+                }}
+              >
+                Reset unlock modals
+              </Button>
+            </div>
+          </FadeIn>
+        )}
 
         <FadeIn delay={0.15} className="glass-card lg:col-span-2">
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">About</p>
