@@ -295,6 +295,21 @@ export const useAppStore = create<AppState>()(
 
         setUserName: (name) => set({ userName: name }),
         setDailyFocusTarget: (min) => set({ dailyFocusTargetMin: min }),
+
+        grantDebugXp: (amount, reason = "Debug XP grant") => {
+          const event: XPEvent = {
+            id: uid(),
+            amount,
+            reason,
+            branch: "craft",
+            sourceType: "login",
+            at: new Date().toISOString(),
+          };
+          set((s) => ({
+            totalXP: s.totalXP + amount,
+            xpHistory: [event, ...s.xpHistory].slice(0, 200),
+          }));
+        },
       };
     },
     { name: "flowsphere-store", version: 2 },
