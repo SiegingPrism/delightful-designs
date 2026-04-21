@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const SettingsPage = () => {
-  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp } = useAppStore();
+  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession } = useAppStore();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useState<Theme>("light");
   const userLevel = levelFromXp(totalXP).level;
@@ -196,6 +196,16 @@ const SettingsPage = () => {
                 }}
               >
                 +100 XP
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  logFocusSession({ durationMin: 25 });
+                  toast.success("Logged a 25-minute focus session");
+                }}
+              >
+                Log 25m focus
               </Button>
               <Button
                 variant="outline"
