@@ -110,6 +110,9 @@ interface AppState {
   // User
   setUserName: (name: string) => void;
   setDailyFocusTarget: (min: number) => void;
+
+  // Dev / debug
+  grantDebugXp: (amount: number, reason?: string) => void;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
