@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { applyTheme, getTheme } from "@/lib/theme";
 import { useAppStore } from "@/lib/store";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { ThemeUnlockWatcher } from "@/components/shared/ThemeUnlockWatcher";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Tasks from "./pages/Tasks.tsx";
@@ -37,6 +38,7 @@ const App = () => {
           <OnboardingWizard />
         ) : (
           <BrowserRouter>
+            <ThemeUnlockWatcher />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/tasks" element={<Tasks />} />
