@@ -85,22 +85,40 @@ const SettingsPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.05} className="glass-card">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Appearance</p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => switchTheme("light")}
-              className={`p-4 rounded-xl border-2 transition-smooth flex flex-col items-center gap-2 ${theme === "light" ? "border-primary bg-primary/10 shadow-glow" : "border-border/40 hover:border-primary/30"}`}
-            >
-              <Sun className="w-6 h-6" />
-              <span className="text-sm font-semibold">Light</span>
-            </button>
-            <button
-              onClick={() => switchTheme("dark")}
-              className={`p-4 rounded-xl border-2 transition-smooth flex flex-col items-center gap-2 ${theme === "dark" ? "border-primary bg-primary/10 shadow-glow" : "border-border/40 hover:border-primary/30"}`}
-            >
-              <Moon className="w-6 h-6" />
-              <span className="text-sm font-semibold">Dark</span>
-            </button>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Appearance</p>
+            <Chip tone="muted">Level {userLevel}</Chip>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {THEMES.map((m) => {
+              const unlocked = isThemeUnlocked(m.id, totalXP);
+              const active = theme === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => switchTheme(m.id)}
+                  className={cn(
+                    "relative p-3 rounded-xl border-2 transition-smooth flex flex-col items-start gap-2 text-left overflow-hidden group",
+                    active ? "border-primary shadow-glow" : "border-border/40 hover:border-primary/30",
+                    !unlocked && "opacity-60",
+                  )}
+                >
+                  <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ background: m.swatch }} />
+                  <div className="relative w-full h-10 rounded-lg border border-border/30" style={{ background: m.swatch }} />
+                  <div className="relative flex items-center justify-between w-full">
+                    <span className="text-sm font-semibold">{m.label}</span>
+                    {active ? (
+                      <Check className="w-3.5 h-3.5 text-primary" />
+                    ) : !unlocked ? (
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                    ) : null}
+                  </div>
+                  <p className="relative text-[10px] text-muted-foreground leading-tight">
+                    {unlocked ? m.description : `Unlocks at level ${m.unlockLevel}`}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </FadeIn>
 
