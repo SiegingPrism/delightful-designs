@@ -76,6 +76,11 @@
     --shadow-elevated: 0 24px 70px -18px hsl(22 100% 40% / 0.5);
     --shadow-glow: 0 0 50px hsl(38 100% 55% / 0.45);
 
+    /* Dynamic ambient orbs — each theme overrides these */
+    --orb-1: radial-gradient(circle at center, hsl(28 100% 55% / 0.55) 0%, hsl(15 95% 45% / 0.22) 38%, transparent 68%);
+    --orb-2: radial-gradient(circle at center, hsl(38 100% 55% / 0.45) 0%, hsl(22 100% 45% / 0.18) 40%, transparent 70%);
+    --orb-3: radial-gradient(circle at center, hsl(45 100% 60% / 0.35) 0%, hsl(28 100% 50% / 0.15) 45%, transparent 75%);
+
     /* Motion */
     --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -142,6 +147,10 @@
     --shadow-elevated: 0 20px 60px -20px hsl(22 95% 45% / 0.3);
     --shadow-glow: 0 0 40px hsl(38 100% 60% / 0.4);
 
+    --orb-1: radial-gradient(circle at center, hsl(28 100% 55% / 0.35) 0%, hsl(15 95% 50% / 0.15) 38%, transparent 68%);
+    --orb-2: radial-gradient(circle at center, hsl(38 100% 60% / 0.3) 0%, hsl(22 100% 55% / 0.12) 40%, transparent 70%);
+    --orb-3: radial-gradient(circle at center, hsl(45 100% 65% / 0.25) 0%, hsl(28 100% 55% / 0.1) 45%, transparent 75%);
+
     --sidebar-background: 45 55% 96%;
     --sidebar-foreground: 24 30% 18%;
     --sidebar-primary: 22 95% 52%;
@@ -158,69 +167,136 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────────
-     Unlockable themes — layered on top of .dark to override key tokens.
+     Unlockable themes — selectors use html.theme-* to win over :root.
      ────────────────────────────────────────────────────────────────────── */
 
-  .theme-aurora {
+  html.theme-aurora {
     --background: 220 50% 8%;
     --foreground: 165 30% 96%;
     --card: 220 45% 12%;
     --card-foreground: 165 30% 96%;
+    --popover: 220 45% 12%;
+    --popover-foreground: 165 30% 96%;
     --primary: 165 80% 50%;
     --primary-foreground: 220 50% 8%;
     --primary-glow: 180 90% 60%;
     --accent: 200 95% 60%;
+    --accent-foreground: 220 50% 8%;
+    --secondary: 220 40% 14%;
+    --secondary-foreground: 165 30% 96%;
     --muted: 220 35% 16%;
     --muted-foreground: 165 20% 70%;
     --border: 220 35% 22%;
+    --input: 220 35% 20%;
     --ring: 165 80% 50%;
+    --glass-bg: 220 45% 13% / 0.55;
+    --glass-border: 165 60% 60% / 0.2;
     --gradient-primary: linear-gradient(135deg, hsl(165 80% 45%), hsl(180 90% 55%));
-    --gradient-mesh:
-      radial-gradient(at 20% 10%, hsl(165 80% 45% / 0.25) 0px, transparent 50%),
-      radial-gradient(at 85% 20%, hsl(200 95% 50% / 0.2) 0px, transparent 50%),
-      radial-gradient(at 70% 85%, hsl(180 90% 50% / 0.22) 0px, transparent 50%);
-    --shadow-glow: 0 0 40px hsl(165 80% 50% / 0.4);
+    --gradient-accent: linear-gradient(135deg, hsl(200 95% 60%), hsl(180 90% 55%));
+    --shadow-glow: 0 0 50px hsl(165 80% 50% / 0.45);
+    --orb-1: radial-gradient(circle at center, hsl(165 90% 50% / 0.55) 0%, hsl(180 90% 45% / 0.22) 38%, transparent 68%);
+    --orb-2: radial-gradient(circle at center, hsl(200 95% 55% / 0.45) 0%, hsl(220 90% 45% / 0.18) 40%, transparent 70%);
+    --orb-3: radial-gradient(circle at center, hsl(180 90% 60% / 0.4) 0%, hsl(165 80% 50% / 0.15) 45%, transparent 75%);
+    --grain-texture:
+      radial-gradient(1px 1px at 23% 17%, hsl(165 60% 90% / 0.32), transparent 50%),
+      radial-gradient(1px 1px at 71% 43%, hsl(180 60% 90% / 0.28), transparent 50%),
+      radial-gradient(1px 1px at 47% 79%, hsl(165 60% 90% / 0.3), transparent 50%),
+      radial-gradient(1px 1px at 88% 92%, hsl(180 60% 90% / 0.25), transparent 50%),
+      radial-gradient(1px 1px at 9% 64%, hsl(165 60% 90% / 0.28), transparent 50%);
+    --sidebar-background: 220 50% 6%;
+    --sidebar-foreground: 165 30% 90%;
+    --sidebar-primary: 165 80% 50%;
+    --sidebar-primary-foreground: 220 50% 8%;
+    --sidebar-accent: 220 40% 12%;
+    --sidebar-accent-foreground: 165 30% 96%;
+    --sidebar-border: 220 35% 18%;
+    --sidebar-ring: 165 80% 50%;
   }
 
-  .theme-carbon {
+  html.theme-carbon {
     --background: 0 0% 5%;
     --foreground: 0 0% 96%;
     --card: 0 0% 9%;
     --card-foreground: 0 0% 96%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 96%;
     --primary: 15 90% 55%;
     --primary-foreground: 0 0% 5%;
     --primary-glow: 30 95% 60%;
     --accent: 15 90% 55%;
+    --accent-foreground: 0 0% 5%;
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 0 0% 96%;
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 60%;
     --border: 0 0% 18%;
+    --input: 0 0% 16%;
     --ring: 15 90% 55%;
+    --glass-bg: 0 0% 8% / 0.6;
+    --glass-border: 15 80% 60% / 0.18;
     --gradient-primary: linear-gradient(135deg, hsl(15 90% 55%), hsl(30 95% 60%));
-    --gradient-mesh:
-      radial-gradient(at 50% 0%, hsl(15 90% 55% / 0.15) 0px, transparent 60%),
-      radial-gradient(at 80% 100%, hsl(30 95% 60% / 0.1) 0px, transparent 60%);
-    --shadow-glow: 0 0 40px hsl(15 90% 55% / 0.4);
+    --gradient-accent: linear-gradient(135deg, hsl(15 90% 55%), hsl(0 0% 30%));
+    --shadow-glow: 0 0 50px hsl(15 90% 55% / 0.45);
+    --orb-1: radial-gradient(circle at center, hsl(15 95% 50% / 0.5) 0%, hsl(0 0% 10% / 0.2) 40%, transparent 70%);
+    --orb-2: radial-gradient(circle at center, hsl(30 95% 55% / 0.35) 0%, hsl(15 90% 40% / 0.15) 45%, transparent 75%);
+    --orb-3: radial-gradient(circle at center, hsl(0 0% 30% / 0.3) 0%, transparent 70%);
+    --grain-texture:
+      radial-gradient(1px 1px at 23% 17%, hsl(0 0% 80% / 0.25), transparent 50%),
+      radial-gradient(1px 1px at 71% 43%, hsl(0 0% 80% / 0.2), transparent 50%),
+      radial-gradient(1px 1px at 47% 79%, hsl(0 0% 80% / 0.22), transparent 50%),
+      radial-gradient(1px 1px at 88% 92%, hsl(0 0% 80% / 0.18), transparent 50%),
+      radial-gradient(1px 1px at 9% 64%, hsl(0 0% 80% / 0.2), transparent 50%);
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 88%;
+    --sidebar-primary: 15 90% 55%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 15 90% 55%;
   }
 
-  .theme-solar {
+  html.theme-solar {
     --background: 38 60% 96%;
     --foreground: 20 30% 15%;
     --card: 0 0% 100%;
     --card-foreground: 20 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 30% 15%;
     --primary: 20 95% 55%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 38 95% 60%;
     --accent: 38 95% 55%;
+    --accent-foreground: 20 30% 15%;
+    --secondary: 38 50% 90%;
+    --secondary-foreground: 20 30% 15%;
     --muted: 38 40% 92%;
     --muted-foreground: 20 20% 40%;
     --border: 38 40% 85%;
+    --input: 38 40% 85%;
     --ring: 20 95% 55%;
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 38 80% 50% / 0.25;
     --gradient-primary: linear-gradient(135deg, hsl(20 95% 55%), hsl(38 95% 60%));
-    --gradient-mesh:
-      radial-gradient(at 20% 10%, hsl(38 95% 55% / 0.25) 0px, transparent 50%),
-      radial-gradient(at 85% 20%, hsl(20 95% 55% / 0.22) 0px, transparent 50%),
-      radial-gradient(at 70% 85%, hsl(45 95% 60% / 0.2) 0px, transparent 50%);
-    --shadow-glow: 0 0 40px hsl(38 95% 60% / 0.45);
+    --gradient-accent: linear-gradient(135deg, hsl(38 95% 55%), hsl(15 90% 55%));
+    --shadow-glow: 0 0 50px hsl(38 95% 60% / 0.5);
+    --orb-1: radial-gradient(circle at center, hsl(38 100% 60% / 0.55) 0%, hsl(20 95% 55% / 0.25) 40%, transparent 70%);
+    --orb-2: radial-gradient(circle at center, hsl(20 95% 60% / 0.45) 0%, hsl(15 95% 50% / 0.18) 42%, transparent 72%);
+    --orb-3: radial-gradient(circle at center, hsl(45 100% 65% / 0.4) 0%, hsl(38 95% 55% / 0.18) 45%, transparent 75%);
+    --grain-texture:
+      radial-gradient(1px 1px at 23% 17%, hsl(20 60% 30% / 0.18), transparent 50%),
+      radial-gradient(1px 1px at 71% 43%, hsl(20 60% 30% / 0.14), transparent 50%),
+      radial-gradient(1px 1px at 47% 79%, hsl(20 60% 30% / 0.16), transparent 50%),
+      radial-gradient(1px 1px at 88% 92%, hsl(20 60% 30% / 0.12), transparent 50%),
+      radial-gradient(1px 1px at 9% 64%, hsl(20 60% 30% / 0.15), transparent 50%);
+    --sidebar-background: 38 60% 94%;
+    --sidebar-foreground: 20 30% 18%;
+    --sidebar-primary: 20 95% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 50% 88%;
+    --sidebar-accent-foreground: 20 30% 18%;
+    --sidebar-border: 38 40% 82%;
+    --sidebar-ring: 20 95% 55%;
   }
 }
 
@@ -276,13 +352,31 @@
   .ember-orb {
     position: absolute;
     border-radius: 9999px;
-    background: radial-gradient(circle at 30% 30%, hsl(38 100% 65% / 0.55), hsl(22 100% 50% / 0.35) 40%, transparent 70%);
-    filter: blur(48px);
     pointer-events: none;
+    filter: blur(60px);
+    will-change: transform;
   }
+  .ember-orb-1 { background: var(--orb-1); animation: orb-drift-1 22s ease-in-out infinite; }
+  .ember-orb-2 { background: var(--orb-2); animation: orb-drift-2 28s ease-in-out infinite; }
+  .ember-orb-3 { background: var(--orb-3); animation: orb-drift-3 34s ease-in-out infinite; }
   .ring-amber-glow {
-    box-shadow: 0 0 0 1px hsl(38 100% 60% / 0.5), 0 0 24px hsl(38 100% 55% / 0.35);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5), 0 0 24px hsl(var(--primary) / 0.35);
   }
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, -40px) scale(1.08); }
+  66% { transform: translate(-40px, 50px) scale(0.95); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-70px, 60px) scale(1.12); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(50px, 70px) scale(1.05); }
+  80% { transform: translate(-60px, -30px) scale(0.92); }
 }
 
 @layer utilities {

@@ -41,15 +41,14 @@ export const HeroCard = () => {
       transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
       className="glass-card relative overflow-hidden p-6 md:p-8 lg:col-span-2"
     >
-      {/* Signature amber horizon — a glowing sun rising from the bottom-right */}
-      <div className="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] rounded-full pointer-events-none"
-           style={{
-             background: "radial-gradient(circle at center, hsl(38 100% 60% / 0.55) 0%, hsl(22 100% 50% / 0.35) 35%, transparent 65%)",
-             filter: "blur(20px)",
-           }}
+      {/* Signature horizon — theme-aware glowing sphere rising from bottom-right */}
+      <div
+        className="ember-orb ember-orb-1 absolute -bottom-40 -right-32 w-[28rem] h-[28rem]"
       />
-      <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-gradient-warm opacity-25 blur-3xl animate-float pointer-events-none" />
-      {/* Thin amber ring echo */}
+      <div
+        className="ember-orb ember-orb-3 absolute -top-24 -left-16 w-72 h-72"
+      />
+      {/* Thin orbital ring echo — uses primary token */}
       <div className="absolute -bottom-48 -right-40 w-[32rem] h-[32rem] rounded-full border border-primary/15 pointer-events-none" />
 
       <div className="relative z-10 flex flex-col gap-6">

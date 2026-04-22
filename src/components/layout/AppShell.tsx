@@ -5,23 +5,19 @@ import { BottomNav } from "./BottomNav";
 export const AppShell = ({ children }: { children: ReactNode }) => {
   return (
     <div className="relative min-h-screen flex">
-      {/* Global ambient ember field — anchors every page in the Amber Cosmos aesthetic */}
+      {/* Dynamic ambient ember field — three drifting orbs driven by theme tokens */}
       <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
         <div
-          className="absolute top-[8%] right-[-12%] w-[42rem] h-[42rem] rounded-full opacity-60"
-          style={{
-            background:
-              "radial-gradient(circle at center, hsl(28 100% 55% / 0.45) 0%, hsl(15 95% 45% / 0.18) 40%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
+          className="ember-orb ember-orb-1"
+          style={{ top: "5%", right: "-12%", width: "44rem", height: "44rem" }}
         />
         <div
-          className="absolute bottom-[-15%] left-[-10%] w-[36rem] h-[36rem] rounded-full opacity-50"
-          style={{
-            background:
-              "radial-gradient(circle at center, hsl(38 100% 55% / 0.35) 0%, hsl(22 100% 45% / 0.15) 40%, transparent 70%)",
-            filter: "blur(70px)",
-          }}
+          className="ember-orb ember-orb-2"
+          style={{ bottom: "-15%", left: "-12%", width: "38rem", height: "38rem" }}
+        />
+        <div
+          className="ember-orb ember-orb-3"
+          style={{ top: "40%", left: "30%", width: "30rem", height: "30rem" }}
         />
       </div>
 
