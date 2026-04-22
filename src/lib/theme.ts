@@ -15,18 +15,18 @@ export interface ThemeMeta {
 
 export const THEMES: ThemeMeta[] = [
   {
-    id: "light",
-    label: "Daylight",
-    description: "Soft warm light, the FlowSphere default.",
+    id: "dark",
+    label: "Ember Cosmos",
+    description: "The signature warm-black canvas with amber heat.",
     unlockLevel: 0,
-    swatch: "linear-gradient(135deg, hsl(30 30% 97%), hsl(246 80% 60%))",
+    swatch: "linear-gradient(135deg, hsl(24 18% 6%), hsl(38 100% 56%))",
   },
   {
-    id: "dark",
-    label: "Midnight",
-    description: "Deep indigo for late sessions.",
+    id: "light",
+    label: "Daylight",
+    description: "Warm cream with amber accents for daytime focus.",
     unlockLevel: 0,
-    swatch: "linear-gradient(135deg, hsl(230 25% 7%), hsl(250 90% 70%))",
+    swatch: "linear-gradient(135deg, hsl(45 60% 94%), hsl(22 95% 52%))",
   },
   {
     id: "aurora",
@@ -52,18 +52,20 @@ export const THEMES: ThemeMeta[] = [
 ];
 
 export const getTheme = (): Theme => {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const stored = localStorage.getItem(KEY) as Theme | null;
   if (stored && ALL_THEMES.includes(stored)) return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "dark";
 };
 
 export const applyTheme = (t: Theme) => {
   const root = document.documentElement;
-  // Remove all theme classes, then apply the right one
   for (const id of ALL_THEMES) root.classList.remove(`theme-${id}`);
-  root.classList.toggle("dark", t === "dark" || t === "carbon" || t === "aurora");
-  // Custom themes get a marker class so index.css can override tokens
+  root.classList.remove("light", "dark");
+  // Default :root is the dark Ember Cosmos. "light" gets its own override class.
+  if (t === "light") root.classList.add("light");
+  else root.classList.add("dark");
+  // Custom themes layer on top of dark
   if (t !== "light" && t !== "dark") root.classList.add(`theme-${t}`);
   localStorage.setItem(KEY, t);
 };

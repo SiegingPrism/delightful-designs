@@ -1,136 +1,160 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* FlowSphere — glass-morphism design system. All colors HSL. */
+/* FlowSphere — Amber Cosmos design system. Warm-black surfaces, amber glow. All colors HSL. */
 
 @layer base {
   :root {
-    /* Surfaces — soft warm light */
-    --background: 30 30% 97%;
-    --foreground: 230 25% 12%;
+    /* Default = the dark amber cosmos. Light overrides further down. */
+    --background: 24 18% 6%;
+    --foreground: 38 30% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 230 25% 12%;
+    --card: 24 16% 9%;
+    --card-foreground: 38 30% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 230 25% 12%;
+    --popover: 24 16% 10%;
+    --popover-foreground: 38 30% 96%;
 
-    /* Brand: deep indigo → electric violet */
-    --primary: 246 80% 60%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 270 90% 70%;
+    /* Brand: amber → orange */
+    --primary: 38 100% 56%;
+    --primary-foreground: 24 30% 8%;
+    --primary-glow: 28 100% 62%;
 
-    --secondary: 230 30% 95%;
-    --secondary-foreground: 230 25% 18%;
+    --secondary: 24 14% 14%;
+    --secondary-foreground: 38 25% 92%;
 
-    --muted: 230 20% 94%;
-    --muted-foreground: 230 12% 45%;
+    --muted: 24 12% 13%;
+    --muted-foreground: 30 12% 65%;
 
-    --accent: 200 95% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 28 100% 60%;
+    --accent-foreground: 24 30% 8%;
 
-    --success: 150 65% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 95% 55%;
-    --warning-foreground: 230 25% 12%;
-    --destructive: 0 80% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --success: 150 60% 50%;
+    --success-foreground: 24 30% 8%;
+    --warning: 38 100% 58%;
+    --warning-foreground: 24 30% 8%;
+    --destructive: 8 85% 58%;
+    --destructive-foreground: 38 30% 96%;
 
-    --border: 230 20% 88%;
-    --input: 230 20% 88%;
-    --ring: 246 80% 60%;
+    --border: 28 20% 18%;
+    --input: 28 20% 16%;
+    --ring: 38 100% 56%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
     /* Glass surface */
-    --glass-bg: 0 0% 100% / 0.65;
-    --glass-border: 230 30% 90% / 0.7;
-    --glass-shadow: 230 30% 20% / 0.08;
+    --glass-bg: 24 16% 10% / 0.55;
+    --glass-border: 38 60% 60% / 0.18;
+    --glass-shadow: 24 30% 2% / 0.55;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(246 80% 60%), hsl(270 90% 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(200 95% 55%), hsl(180 85% 50%));
-    --gradient-warm: linear-gradient(135deg, hsl(38 95% 65%), hsl(15 90% 65%));
+    /* Gradients — amber heat */
+    --gradient-primary: linear-gradient(135deg, hsl(38 100% 56%), hsl(22 100% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(28 100% 60%), hsl(15 95% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(45 100% 65%), hsl(15 95% 55%));
     --gradient-mesh:
-      radial-gradient(at 20% 10%, hsl(246 80% 60% / 0.18) 0px, transparent 50%),
-      radial-gradient(at 85% 20%, hsl(200 95% 55% / 0.15) 0px, transparent 50%),
-      radial-gradient(at 70% 85%, hsl(270 90% 70% / 0.18) 0px, transparent 50%),
-      radial-gradient(at 15% 90%, hsl(180 85% 50% / 0.12) 0px, transparent 50%);
+      radial-gradient(at 18% 12%, hsl(28 100% 55% / 0.32) 0px, transparent 45%),
+      radial-gradient(at 85% 18%, hsl(38 100% 50% / 0.22) 0px, transparent 50%),
+      radial-gradient(at 75% 90%, hsl(15 95% 50% / 0.28) 0px, transparent 50%),
+      radial-gradient(at 10% 95%, hsl(38 100% 55% / 0.18) 0px, transparent 50%);
+
+    /* Starfield grain — subtle dotted noise overlay */
+    --grain-texture:
+      radial-gradient(1px 1px at 23% 17%, hsl(38 100% 90% / 0.35), transparent 50%),
+      radial-gradient(1px 1px at 71% 43%, hsl(38 100% 90% / 0.28), transparent 50%),
+      radial-gradient(1px 1px at 47% 79%, hsl(38 100% 90% / 0.32), transparent 50%),
+      radial-gradient(1px 1px at 88% 92%, hsl(38 100% 90% / 0.25), transparent 50%),
+      radial-gradient(1px 1px at 9% 64%, hsl(38 100% 90% / 0.3), transparent 50%),
+      radial-gradient(1px 1px at 33% 36%, hsl(38 100% 90% / 0.2), transparent 50%),
+      radial-gradient(1.5px 1.5px at 62% 12%, hsl(38 100% 90% / 0.28), transparent 50%),
+      radial-gradient(1px 1px at 81% 71%, hsl(38 100% 90% / 0.22), transparent 50%);
 
     /* Shadows */
-    --shadow-glass: 0 8px 32px hsl(230 30% 20% / 0.08), inset 0 1px 0 hsl(0 0% 100% / 0.6);
-    --shadow-elevated: 0 20px 60px -20px hsl(246 80% 40% / 0.25);
-    --shadow-glow: 0 0 40px hsl(270 90% 70% / 0.35);
+    --shadow-glass: 0 12px 40px hsl(24 30% 2% / 0.55), inset 0 1px 0 hsl(38 100% 80% / 0.06);
+    --shadow-elevated: 0 24px 70px -18px hsl(22 100% 40% / 0.5);
+    --shadow-glow: 0 0 50px hsl(38 100% 55% / 0.45);
 
     /* Motion */
     --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    --sidebar-background: 230 30% 98%;
-    --sidebar-foreground: 230 25% 18%;
-    --sidebar-primary: 246 80% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 230 30% 94%;
-    --sidebar-accent-foreground: 230 25% 18%;
-    --sidebar-border: 230 20% 88%;
-    --sidebar-ring: 246 80% 60%;
+    --sidebar-background: 24 18% 5%;
+    --sidebar-foreground: 38 25% 88%;
+    --sidebar-primary: 38 100% 56%;
+    --sidebar-primary-foreground: 24 30% 8%;
+    --sidebar-accent: 24 14% 12%;
+    --sidebar-accent-foreground: 38 25% 92%;
+    --sidebar-border: 28 20% 16%;
+    --sidebar-ring: 38 100% 56%;
   }
 
-  .dark {
-    --background: 230 25% 7%;
-    --foreground: 230 20% 96%;
+  /* Light mode — warm cream with amber accents (mirrors the reference's outer canvas) */
+  .light {
+    --background: 45 60% 94%;
+    --foreground: 24 30% 12%;
 
-    --card: 230 25% 11%;
-    --card-foreground: 230 20% 96%;
+    --card: 45 50% 98%;
+    --card-foreground: 24 30% 12%;
 
-    --popover: 230 25% 11%;
-    --popover-foreground: 230 20% 96%;
+    --popover: 45 50% 98%;
+    --popover-foreground: 24 30% 12%;
 
-    --primary: 250 90% 70%;
-    --primary-foreground: 230 25% 7%;
-    --primary-glow: 270 90% 75%;
+    --primary: 22 95% 52%;
+    --primary-foreground: 45 60% 98%;
+    --primary-glow: 38 100% 58%;
 
-    --secondary: 230 25% 16%;
-    --secondary-foreground: 230 20% 96%;
+    --secondary: 45 40% 90%;
+    --secondary-foreground: 24 30% 18%;
 
-    --muted: 230 22% 15%;
-    --muted-foreground: 230 15% 65%;
+    --muted: 45 35% 88%;
+    --muted-foreground: 24 18% 38%;
 
-    --accent: 200 95% 60%;
-    --accent-foreground: 230 25% 7%;
+    --accent: 38 100% 52%;
+    --accent-foreground: 24 30% 12%;
 
-    --success: 150 65% 50%;
-    --warning: 38 95% 60%;
-    --destructive: 0 75% 60%;
+    --success: 150 60% 38%;
+    --warning: 38 100% 50%;
+    --destructive: 8 80% 50%;
 
-    --border: 230 22% 20%;
-    --input: 230 22% 18%;
-    --ring: 250 90% 70%;
+    --border: 38 30% 80%;
+    --input: 38 30% 82%;
+    --ring: 22 95% 52%;
 
-    --glass-bg: 230 25% 13% / 0.6;
-    --glass-border: 230 25% 28% / 0.5;
-    --glass-shadow: 0 0% 0% / 0.4;
+    --glass-bg: 45 50% 99% / 0.7;
+    --glass-border: 38 60% 50% / 0.2;
+    --glass-shadow: 24 30% 30% / 0.1;
 
     --gradient-mesh:
-      radial-gradient(at 20% 10%, hsl(250 90% 50% / 0.25) 0px, transparent 50%),
-      radial-gradient(at 85% 20%, hsl(200 95% 50% / 0.2) 0px, transparent 50%),
-      radial-gradient(at 70% 85%, hsl(270 90% 60% / 0.25) 0px, transparent 50%),
-      radial-gradient(at 15% 90%, hsl(180 85% 45% / 0.15) 0px, transparent 50%);
+      radial-gradient(at 18% 12%, hsl(38 100% 60% / 0.25) 0px, transparent 50%),
+      radial-gradient(at 85% 18%, hsl(22 95% 55% / 0.18) 0px, transparent 50%),
+      radial-gradient(at 75% 90%, hsl(38 100% 60% / 0.22) 0px, transparent 50%);
 
-    --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.4), inset 0 1px 0 hsl(0 0% 100% / 0.05);
-    --shadow-elevated: 0 20px 60px -20px hsl(250 90% 30% / 0.5);
+    --grain-texture:
+      radial-gradient(1px 1px at 23% 17%, hsl(24 50% 30% / 0.18), transparent 50%),
+      radial-gradient(1px 1px at 71% 43%, hsl(24 50% 30% / 0.12), transparent 50%),
+      radial-gradient(1px 1px at 47% 79%, hsl(24 50% 30% / 0.15), transparent 50%),
+      radial-gradient(1px 1px at 88% 92%, hsl(24 50% 30% / 0.1), transparent 50%),
+      radial-gradient(1px 1px at 9% 64%, hsl(24 50% 30% / 0.14), transparent 50%);
 
-    --sidebar-background: 230 25% 9%;
-    --sidebar-foreground: 230 20% 90%;
-    --sidebar-primary: 250 90% 70%;
-    --sidebar-primary-foreground: 230 25% 7%;
-    --sidebar-accent: 230 25% 14%;
-    --sidebar-accent-foreground: 230 20% 96%;
-    --sidebar-border: 230 22% 18%;
-    --sidebar-ring: 250 90% 70%;
+    --shadow-glass: 0 8px 32px hsl(24 30% 30% / 0.1), inset 0 1px 0 hsl(45 60% 100% / 0.6);
+    --shadow-elevated: 0 20px 60px -20px hsl(22 95% 45% / 0.3);
+    --shadow-glow: 0 0 40px hsl(38 100% 60% / 0.4);
+
+    --sidebar-background: 45 55% 96%;
+    --sidebar-foreground: 24 30% 18%;
+    --sidebar-primary: 22 95% 52%;
+    --sidebar-primary-foreground: 45 60% 98%;
+    --sidebar-accent: 45 40% 90%;
+    --sidebar-accent-foreground: 24 30% 18%;
+    --sidebar-border: 38 30% 80%;
+    --sidebar-ring: 22 95% 52%;
+  }
+
+  /* Dark = same as :root (default). Kept for compatibility with theme toggling code. */
+  .dark {
+    color-scheme: dark;
   }
 
   /* ──────────────────────────────────────────────────────────────────────
@@ -206,23 +230,38 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
-    background-image: var(--gradient-mesh);
-    background-attachment: fixed;
+    background-image: var(--grain-texture), var(--gradient-mesh);
+    background-size: 320px 320px, 100% 100%;
+    background-attachment: fixed, fixed;
+    background-repeat: repeat, no-repeat;
   }
-  h1, h2, h3, h4 { font-family: 'Poppins', 'Inter', sans-serif; letter-spacing: -0.02em; }
+  h1, h2, h3, h4 { font-family: 'Sora', 'Inter', sans-serif; letter-spacing: -0.025em; font-weight: 700; }
 }
 
 @layer components {
   .glass {
     background: hsl(var(--glass-bg));
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
     border: 1px solid hsl(var(--glass-border));
     box-shadow: var(--shadow-glass);
   }
   .glass-card {
-    @apply glass rounded-2xl p-5;
+    @apply glass rounded-3xl p-5;
+    position: relative;
+    overflow: hidden;
   }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--grain-texture);
+    background-size: 280px 280px;
+    opacity: 0.35;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  .glass-card > * { position: relative; z-index: 1; }
   .gradient-text {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -230,9 +269,19 @@
     color: transparent;
   }
   .number-display {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.04em;
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+  .ember-orb {
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 30% 30%, hsl(38 100% 65% / 0.55), hsl(22 100% 50% / 0.35) 40%, transparent 70%);
+    filter: blur(48px);
+    pointer-events: none;
+  }
+  .ring-amber-glow {
+    box-shadow: 0 0 0 1px hsl(38 100% 60% / 0.5), 0 0 24px hsl(38 100% 55% / 0.35);
   }
 }
 
@@ -247,4 +296,5 @@
   .transition-bounce { transition: all 0.4s var(--transition-bounce); }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 3px; }
+  .text-balance { text-wrap: balance; }
 }

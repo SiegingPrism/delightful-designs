@@ -9,7 +9,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'Inter', 'sans-serif'],
+        display: ['Sora', 'Inter', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
