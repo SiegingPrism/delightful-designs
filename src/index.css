@@ -230,23 +230,38 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
-    background-image: var(--gradient-mesh);
-    background-attachment: fixed;
+    background-image: var(--grain-texture), var(--gradient-mesh);
+    background-size: 320px 320px, 100% 100%;
+    background-attachment: fixed, fixed;
+    background-repeat: repeat, no-repeat;
   }
-  h1, h2, h3, h4 { font-family: 'Poppins', 'Inter', sans-serif; letter-spacing: -0.02em; }
+  h1, h2, h3, h4 { font-family: 'Sora', 'Inter', sans-serif; letter-spacing: -0.025em; font-weight: 700; }
 }
 
 @layer components {
   .glass {
     background: hsl(var(--glass-bg));
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
     border: 1px solid hsl(var(--glass-border));
     box-shadow: var(--shadow-glass);
   }
   .glass-card {
-    @apply glass rounded-2xl p-5;
+    @apply glass rounded-3xl p-5;
+    position: relative;
+    overflow: hidden;
   }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--grain-texture);
+    background-size: 280px 280px;
+    opacity: 0.35;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  .glass-card > * { position: relative; z-index: 1; }
   .gradient-text {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -254,9 +269,19 @@
     color: transparent;
   }
   .number-display {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.04em;
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+  .ember-orb {
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 30% 30%, hsl(38 100% 65% / 0.55), hsl(22 100% 50% / 0.35) 40%, transparent 70%);
+    filter: blur(48px);
+    pointer-events: none;
+  }
+  .ring-amber-glow {
+    box-shadow: 0 0 0 1px hsl(38 100% 60% / 0.5), 0 0 24px hsl(38 100% 55% / 0.35);
   }
 }
 
@@ -271,4 +296,5 @@
   .transition-bounce { transition: all 0.4s var(--transition-bounce); }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 3px; }
+  .text-balance { text-wrap: balance; }
 }
