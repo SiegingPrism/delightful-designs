@@ -50,7 +50,7 @@
     --glass-border: 38 60% 60% / 0.18;
     --glass-shadow: 24 30% 2% / 0.55;
 
-    /* Gradients — amber heat */
+    /* Gradients — amber heat (warm gradient is theme-aware via per-theme overrides) */
     --gradient-primary: linear-gradient(135deg, hsl(38 100% 56%), hsl(22 100% 55%));
     --gradient-accent: linear-gradient(135deg, hsl(28 100% 60%), hsl(15 95% 55%));
     --gradient-warm: linear-gradient(135deg, hsl(45 100% 65%), hsl(15 95% 55%));
