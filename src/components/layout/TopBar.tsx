@@ -30,7 +30,7 @@ export const TopBar = ({ title, eyebrow, subtitle }: { title: string; eyebrow?: 
           className="w-10 h-10 rounded-xl glass flex items-center justify-center hover:scale-105 transition-bounce text-foreground"
           aria-label="Toggle theme"
         >
-          {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {showSun ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
         <Link
           to="/calendar"
