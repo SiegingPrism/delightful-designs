@@ -41,20 +41,29 @@ export const HeroCard = () => {
       transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
       className="glass-card relative overflow-hidden p-6 md:p-8 lg:col-span-2"
     >
-      {/* Animated gradient orb */}
-      <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-primary opacity-30 blur-3xl animate-float pointer-events-none" />
-      <div className="absolute -bottom-24 -left-12 w-64 h-64 rounded-full bg-gradient-accent opacity-20 blur-3xl pointer-events-none" />
+      {/* Signature amber horizon — a glowing sun rising from the bottom-right */}
+      <div className="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] rounded-full pointer-events-none"
+           style={{
+             background: "radial-gradient(circle at center, hsl(38 100% 60% / 0.55) 0%, hsl(22 100% 50% / 0.35) 35%, transparent 65%)",
+             filter: "blur(20px)",
+           }}
+      />
+      <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-gradient-warm opacity-25 blur-3xl animate-float pointer-events-none" />
+      {/* Thin amber ring echo */}
+      <div className="absolute -bottom-48 -right-40 w-[32rem] h-[32rem] rounded-full border border-primary/15 pointer-events-none" />
 
       <div className="relative z-10 flex flex-col gap-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80 mb-2 flex items-center gap-1.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary mb-2 flex items-center gap-1.5">
             <Sparkles className="w-3 h-3" /> FlowSphere
           </p>
-          <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight">
-            {greeting()},{" "}
-            <span className="gradient-text">{userName}</span>
+          <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight text-balance">
+            <span className="gradient-text">{greeting().split(" ")[0]}</span>{" "}
+            {greeting().split(" ").slice(1).join(" ")},
+            <br />
+            {userName}
           </h2>
-          <p className="text-muted-foreground mt-2 max-w-md">
+          <p className="text-muted-foreground mt-3 max-w-md">
             {completed === 0
               ? "Ready to make progress? Start with one task."
               : `You've completed ${completed} of ${todays.length} task${todays.length === 1 ? "" : "s"} today. Keep the momentum.`}
@@ -62,7 +71,7 @@ export const HeroCard = () => {
           <div className="flex items-center gap-3 mt-5">
             <Link
               to="/focus"
-              className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground font-semibold shadow-elevated hover:shadow-glow transition-smooth"
+              className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold shadow-elevated hover:shadow-glow transition-smooth"
             >
               Start focus
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-smooth" />
