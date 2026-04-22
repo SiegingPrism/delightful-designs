@@ -9,10 +9,9 @@ export const useTheme = (): [Theme, (t: Theme) => void] => {
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
 
   useEffect(() => {
-    // Re-sync once on mount in case the inline index.html script and
-    // React's first render disagreed on the value.
     setThemeState(getTheme());
-    return subscribeTheme((next) => setThemeState(next));
+    const unsub = subscribeTheme((next) => setThemeState(next));
+    return () => { unsub(); };
   }, []);
 
   const setTheme = (t: Theme) => applyTheme(t);
