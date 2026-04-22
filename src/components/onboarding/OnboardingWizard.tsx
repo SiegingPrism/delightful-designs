@@ -91,13 +91,13 @@ export const OnboardingWizard = () => {
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === step ? "w-8 bg-gradient-primary" : i < step ? "w-4 bg-primary/60" : "w-4 bg-muted"
+                i === step ? "w-8 bg-primary" : i < step ? "w-4 bg-white/70" : "w-4 bg-white/70"
               }`}
             />
           ))}
         </div>
 
-        <div className="glass-card min-h-[420px] flex flex-col">
+        <div className="glass-card min-h-[420px] flex flex-col animate-float shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)]">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -144,7 +144,7 @@ export const OnboardingWizard = () => {
           </div>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-4">
+        <p className="text-center text-xs text-muted-foreground mt-8">
           Takes under a minute · You can change everything later in Settings.
         </p>
       </div>
