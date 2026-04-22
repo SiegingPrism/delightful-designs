@@ -65,7 +65,7 @@ const SettingsPage = () => {
       toast.error(`${meta.label} unlocks at level ${meta.unlockLevel}. You're level ${userLevel}.`);
       return;
     }
-    setTheme(t); applyTheme(t);
+    setTheme(t);
     toast.success(`Theme: ${THEMES.find((m) => m.id === t)?.label}`);
   };
 
