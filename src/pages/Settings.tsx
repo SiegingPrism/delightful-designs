@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Download, Upload, Trash2, User, Lock, Check, Beaker } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
-import { applyTheme, getTheme, isThemeUnlocked, THEMES, type Theme } from "@/lib/theme";
+import { isThemeUnlocked, THEMES, type Theme, verifyThemeApplied, type ThemeHealthReport } from "@/lib/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { levelFromXp } from "@/lib/gamification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +15,17 @@ import { cn } from "@/lib/utils";
 const SettingsPage = () => {
   const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession } = useAppStore();
   const [name, setName] = useState(userName);
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useTheme();
   const userLevel = levelFromXp(totalXP).level;
+  const [health, setHealth] = useState<ThemeHealthReport | null>(null);
 
-  useEffect(() => { setTheme(getTheme()); }, []);
+  // Re-run the runtime check whenever the theme changes — gives an instant
+  // visual confirmation that the right class landed on <html>.
+  useEffect(() => {
+    // wait one frame so the DOM mutation lands before we read it
+    const id = requestAnimationFrame(() => setHealth(verifyThemeApplied(theme)));
+    return () => cancelAnimationFrame(id);
+  }, [theme]);
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify({ tasks, habits, focusSessions, healthLogs, xpHistory, totalXP, userName }, null, 2)], { type: "application/json" });
