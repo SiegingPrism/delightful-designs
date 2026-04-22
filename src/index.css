@@ -352,13 +352,31 @@
   .ember-orb {
     position: absolute;
     border-radius: 9999px;
-    background: radial-gradient(circle at 30% 30%, hsl(38 100% 65% / 0.55), hsl(22 100% 50% / 0.35) 40%, transparent 70%);
-    filter: blur(48px);
     pointer-events: none;
+    filter: blur(60px);
+    will-change: transform;
   }
+  .ember-orb-1 { background: var(--orb-1); animation: orb-drift-1 22s ease-in-out infinite; }
+  .ember-orb-2 { background: var(--orb-2); animation: orb-drift-2 28s ease-in-out infinite; }
+  .ember-orb-3 { background: var(--orb-3); animation: orb-drift-3 34s ease-in-out infinite; }
   .ring-amber-glow {
-    box-shadow: 0 0 0 1px hsl(38 100% 60% / 0.5), 0 0 24px hsl(38 100% 55% / 0.35);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5), 0 0 24px hsl(var(--primary) / 0.35);
   }
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, -40px) scale(1.08); }
+  66% { transform: translate(-40px, 50px) scale(0.95); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-70px, 60px) scale(1.12); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(50px, 70px) scale(1.05); }
+  80% { transform: translate(-60px, -30px) scale(0.92); }
 }
 
 @layer utilities {
