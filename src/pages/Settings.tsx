@@ -128,6 +128,54 @@ const SettingsPage = () => {
               );
             })}
           </div>
+
+          {/* Runtime theme health indicator — verifies the right class landed on <html> */}
+          {health && (
+            <div
+              className={cn(
+                "mt-4 rounded-xl border p-3 flex items-start gap-3 transition-smooth",
+                health.ok
+                  ? "border-success/30 bg-success/5"
+                  : "border-destructive/40 bg-destructive/5",
+              )}
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                  health.ok ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive",
+                )}
+              >
+                {health.ok ? (
+                  <ShieldCheck className="w-4 h-4" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0 text-xs">
+                <p className="font-semibold text-foreground">
+                  {health.ok ? "Theme verified" : "Theme out of sync"}
+                </p>
+                <p className="text-muted-foreground mt-0.5 leading-relaxed">
+                  {health.ok ? (
+                    <>
+                      Class <code className="font-mono text-foreground/90">
+                        {theme === "light" ? "light" : theme === "dark" ? "dark" : `dark theme-${theme}`}
+                      </code>{" "}
+                      mounted on <code className="font-mono text-foreground/90">&lt;html&gt;</code>. Stored:{" "}
+                      <code className="font-mono text-foreground/90">{health.storedValue}</code>.
+                    </>
+                  ) : (
+                    <>{health.issues.join(" · ")}</>
+                  )}
+                </p>
+              </div>
+              <Chip tone={health.ok ? "success" : "destructive"}>
+                {health.ok ? "OK" : `${health.issues.length} issue${health.issues.length === 1 ? "" : "s"}`}
+              </Chip>
+            </div>
+          )}
         </FadeIn>
 
         <FadeIn delay={0.1} className="glass-card lg:col-span-2">
