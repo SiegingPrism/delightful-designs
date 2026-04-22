@@ -1,10 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { applyTheme, getTheme } from "@/lib/theme";
 import { useAppStore } from "@/lib/store";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { ThemeUnlockWatcher } from "@/components/shared/ThemeUnlockWatcher";
@@ -23,11 +21,9 @@ import SkillTree from "./pages/SkillTree.tsx";
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Theme is applied synchronously by the inline script in index.html
+  // (see <script> in <head>) so there's no FOUC and no useEffect needed here.
   const onboardedAt = useAppStore((s) => s.onboardedAt);
-
-  useEffect(() => {
-    applyTheme(getTheme());
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

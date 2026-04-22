@@ -10,7 +10,7 @@ export interface ThemeMeta {
   label: string;
   description: string;
   unlockLevel: number; // 0 = always unlocked
-  swatch: string; // CSS gradient/color preview
+  swatch: string;
 }
 
 export const THEMES: ThemeMeta[] = [
@@ -51,6 +51,17 @@ export const THEMES: ThemeMeta[] = [
   },
 ];
 
+// ── pub/sub so any component can react to theme changes instantly ──
+type Listener = (t: Theme) => void;
+const listeners = new Set<Listener>();
+
+export const subscribeTheme = (fn: Listener) => {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+};
+
+const emit = (t: Theme) => listeners.forEach((fn) => fn(t));
+
 export const getTheme = (): Theme => {
   if (typeof window === "undefined") return "dark";
   const stored = localStorage.getItem(KEY) as Theme | null;
@@ -62,13 +73,28 @@ export const applyTheme = (t: Theme) => {
   const root = document.documentElement;
   for (const id of ALL_THEMES) root.classList.remove(`theme-${id}`);
   root.classList.remove("light", "dark");
-  // Default :root is the dark Ember Cosmos. "light" gets its own override class.
   if (t === "light") root.classList.add("light");
   else root.classList.add("dark");
-  // Custom themes layer on top of dark
   if (t !== "light" && t !== "dark") root.classList.add(`theme-${t}`);
   localStorage.setItem(KEY, t);
+  emit(t);
 };
+
+// ── cross-tab sync: when another tab changes the theme, mirror it here ──
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === KEY && e.newValue && ALL_THEMES.includes(e.newValue as Theme)) {
+      const t = e.newValue as Theme;
+      const root = document.documentElement;
+      for (const id of ALL_THEMES) root.classList.remove(`theme-${id}`);
+      root.classList.remove("light", "dark");
+      if (t === "light") root.classList.add("light");
+      else root.classList.add("dark");
+      if (t !== "light" && t !== "dark") root.classList.add(`theme-${t}`);
+      emit(t);
+    }
+  });
+}
 
 export const isThemeUnlocked = (t: Theme, totalXp: number): boolean => {
   const meta = THEMES.find((m) => m.id === t);
@@ -94,10 +120,73 @@ export const markUnlockSeen = (t: Theme) => {
   localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
 };
 
-/** Returns themes that are unlocked but have never been celebrated. */
 export const getUnseenUnlocks = (totalXp: number): ThemeMeta[] => {
   const seen = new Set(getSeenUnlocks());
   return THEMES.filter(
     (m) => m.unlockLevel > 0 && isThemeUnlocked(m.id, totalXp) && !seen.has(m.id),
   );
+};
+
+// ── runtime verification: confirms the theme is correctly mounted on <html> ──
+export interface ThemeHealthReport {
+  expected: Theme;
+  rootElement: "html";
+  htmlClasses: string[];
+  bodyClasses: string[];
+  hasCorrectClass: boolean;
+  hasStrayClasses: boolean;
+  primaryTokenResolved: string;
+  backgroundTokenResolved: string;
+  storedValue: string | null;
+  ok: boolean;
+  issues: string[];
+}
+
+export const verifyThemeApplied = (expected: Theme): ThemeHealthReport => {
+  const html = document.documentElement;
+  const htmlClasses = Array.from(html.classList);
+  const bodyClasses = Array.from(document.body.classList);
+  const issues: string[] = [];
+
+  const expectedClass = expected === "light" ? "light" : expected === "dark" ? "dark" : `theme-${expected}`;
+  const baseClass = expected === "light" ? "light" : "dark";
+
+  const hasCorrectClass =
+    htmlClasses.includes(baseClass) &&
+    (expected === "light" || expected === "dark" || htmlClasses.includes(`theme-${expected}`));
+
+  if (!hasCorrectClass) issues.push(`Missing expected class "${expectedClass}" on <html>`);
+
+  // Stray theme classes (a different unlocked theme leaked through)
+  const otherThemes = ALL_THEMES.filter((t) => t !== expected && t !== "light" && t !== "dark");
+  const stray = otherThemes.filter((t) => htmlClasses.includes(`theme-${t}`));
+  if (stray.length) issues.push(`Stray theme classes present: ${stray.join(", ")}`);
+
+  // Theme classes should live on <html>, not <body> or any other container
+  const bodyHasTheme = bodyClasses.some((c) => c === "light" || c === "dark" || c.startsWith("theme-"));
+  if (bodyHasTheme) issues.push("Theme class found on <body> (should only be on <html>)");
+
+  // Resolve a couple of tokens to confirm the cascade is alive
+  const styles = getComputedStyle(html);
+  const primaryTokenResolved = styles.getPropertyValue("--primary").trim();
+  const backgroundTokenResolved = styles.getPropertyValue("--background").trim();
+  if (!primaryTokenResolved) issues.push("--primary token did not resolve");
+  if (!backgroundTokenResolved) issues.push("--background token did not resolve");
+
+  const storedValue = localStorage.getItem(KEY);
+  if (storedValue !== expected) issues.push(`localStorage out of sync (stored: ${storedValue})`);
+
+  return {
+    expected,
+    rootElement: "html",
+    htmlClasses,
+    bodyClasses,
+    hasCorrectClass,
+    hasStrayClasses: stray.length > 0,
+    primaryTokenResolved,
+    backgroundTokenResolved,
+    storedValue,
+    ok: issues.length === 0,
+    issues,
+  };
 };

@@ -50,7 +50,7 @@
     --glass-border: 38 60% 60% / 0.18;
     --glass-shadow: 24 30% 2% / 0.55;
 
-    /* Gradients — amber heat */
+    /* Gradients — amber heat (warm gradient is theme-aware via per-theme overrides) */
     --gradient-primary: linear-gradient(135deg, hsl(38 100% 56%), hsl(22 100% 55%));
     --gradient-accent: linear-gradient(135deg, hsl(28 100% 60%), hsl(15 95% 55%));
     --gradient-warm: linear-gradient(135deg, hsl(45 100% 65%), hsl(15 95% 55%));
@@ -146,6 +146,7 @@
     --shadow-glass: 0 8px 32px hsl(24 30% 30% / 0.1), inset 0 1px 0 hsl(45 60% 100% / 0.6);
     --shadow-elevated: 0 20px 60px -20px hsl(22 95% 45% / 0.3);
     --shadow-glow: 0 0 40px hsl(38 100% 60% / 0.4);
+    --gradient-warm: linear-gradient(135deg, hsl(45 100% 60%), hsl(22 95% 55%));
 
     --orb-1: radial-gradient(circle at center, hsl(28 100% 55% / 0.35) 0%, hsl(15 95% 50% / 0.15) 38%, transparent 68%);
     --orb-2: radial-gradient(circle at center, hsl(38 100% 60% / 0.3) 0%, hsl(22 100% 55% / 0.12) 40%, transparent 70%);
@@ -193,6 +194,7 @@
     --glass-border: 165 60% 60% / 0.2;
     --gradient-primary: linear-gradient(135deg, hsl(165 80% 45%), hsl(180 90% 55%));
     --gradient-accent: linear-gradient(135deg, hsl(200 95% 60%), hsl(180 90% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(180 90% 55%), hsl(200 95% 50%));
     --shadow-glow: 0 0 50px hsl(165 80% 50% / 0.45);
     --orb-1: radial-gradient(circle at center, hsl(165 90% 50% / 0.55) 0%, hsl(180 90% 45% / 0.22) 38%, transparent 68%);
     --orb-2: radial-gradient(circle at center, hsl(200 95% 55% / 0.45) 0%, hsl(220 90% 45% / 0.18) 40%, transparent 70%);
@@ -236,6 +238,7 @@
     --glass-border: 15 80% 60% / 0.18;
     --gradient-primary: linear-gradient(135deg, hsl(15 90% 55%), hsl(30 95% 60%));
     --gradient-accent: linear-gradient(135deg, hsl(15 90% 55%), hsl(0 0% 30%));
+    --gradient-warm: linear-gradient(135deg, hsl(30 95% 60%), hsl(15 90% 50%));
     --shadow-glow: 0 0 50px hsl(15 90% 55% / 0.45);
     --orb-1: radial-gradient(circle at center, hsl(15 95% 50% / 0.5) 0%, hsl(0 0% 10% / 0.2) 40%, transparent 70%);
     --orb-2: radial-gradient(circle at center, hsl(30 95% 55% / 0.35) 0%, hsl(15 90% 40% / 0.15) 45%, transparent 75%);
@@ -279,6 +282,7 @@
     --glass-border: 38 80% 50% / 0.25;
     --gradient-primary: linear-gradient(135deg, hsl(20 95% 55%), hsl(38 95% 60%));
     --gradient-accent: linear-gradient(135deg, hsl(38 95% 55%), hsl(15 90% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(45 100% 60%), hsl(20 95% 55%));
     --shadow-glow: 0 0 50px hsl(38 95% 60% / 0.5);
     --orb-1: radial-gradient(circle at center, hsl(38 100% 60% / 0.55) 0%, hsl(20 95% 55% / 0.25) 40%, transparent 70%);
     --orb-2: radial-gradient(circle at center, hsl(20 95% 60% / 0.45) 0%, hsl(15 95% 50% / 0.18) 42%, transparent 72%);

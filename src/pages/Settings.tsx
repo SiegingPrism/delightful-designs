@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Download, Upload, Trash2, User, Lock, Check, Beaker } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
-import { applyTheme, getTheme, isThemeUnlocked, THEMES, type Theme } from "@/lib/theme";
+import { isThemeUnlocked, THEMES, type Theme, verifyThemeApplied, type ThemeHealthReport } from "@/lib/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { levelFromXp } from "@/lib/gamification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +15,17 @@ import { cn } from "@/lib/utils";
 const SettingsPage = () => {
   const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession } = useAppStore();
   const [name, setName] = useState(userName);
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useTheme();
   const userLevel = levelFromXp(totalXP).level;
+  const [health, setHealth] = useState<ThemeHealthReport | null>(null);
 
-  useEffect(() => { setTheme(getTheme()); }, []);
+  // Re-run the runtime check whenever the theme changes — gives an instant
+  // visual confirmation that the right class landed on <html>.
+  useEffect(() => {
+    // wait one frame so the DOM mutation lands before we read it
+    const id = requestAnimationFrame(() => setHealth(verifyThemeApplied(theme)));
+    return () => cancelAnimationFrame(id);
+  }, [theme]);
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify({ tasks, habits, focusSessions, healthLogs, xpHistory, totalXP, userName }, null, 2)], { type: "application/json" });
@@ -57,7 +65,7 @@ const SettingsPage = () => {
       toast.error(`${meta.label} unlocks at level ${meta.unlockLevel}. You're level ${userLevel}.`);
       return;
     }
-    setTheme(t); applyTheme(t);
+    setTheme(t);
     toast.success(`Theme: ${THEMES.find((m) => m.id === t)?.label}`);
   };
 
@@ -120,6 +128,54 @@ const SettingsPage = () => {
               );
             })}
           </div>
+
+          {/* Runtime theme health indicator — verifies the right class landed on <html> */}
+          {health && (
+            <div
+              className={cn(
+                "mt-4 rounded-xl border p-3 flex items-start gap-3 transition-smooth",
+                health.ok
+                  ? "border-success/30 bg-success/5"
+                  : "border-destructive/40 bg-destructive/5",
+              )}
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                  health.ok ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive",
+                )}
+              >
+                {health.ok ? (
+                  <ShieldCheck className="w-4 h-4" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0 text-xs">
+                <p className="font-semibold text-foreground">
+                  {health.ok ? "Theme verified" : "Theme out of sync"}
+                </p>
+                <p className="text-muted-foreground mt-0.5 leading-relaxed">
+                  {health.ok ? (
+                    <>
+                      Class <code className="font-mono text-foreground/90">
+                        {theme === "light" ? "light" : theme === "dark" ? "dark" : `dark theme-${theme}`}
+                      </code>{" "}
+                      mounted on <code className="font-mono text-foreground/90">&lt;html&gt;</code>. Stored:{" "}
+                      <code className="font-mono text-foreground/90">{health.storedValue}</code>.
+                    </>
+                  ) : (
+                    <>{health.issues.join(" · ")}</>
+                  )}
+                </p>
+              </div>
+              <Chip tone={health.ok ? "success" : "destructive"}>
+                {health.ok ? "OK" : `${health.issues.length} issue${health.issues.length === 1 ? "" : "s"}`}
+              </Chip>
+            </div>
+          )}
         </FadeIn>
 
         <FadeIn delay={0.1} className="glass-card lg:col-span-2">

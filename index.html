@@ -14,6 +14,23 @@
     <meta property="og:image" content="/placeholder.svg" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Apply persisted theme synchronously to avoid FOUC and ensure
+      // Aurora/Carbon/Solar persist across refresh and new tabs.
+      (function () {
+        try {
+          var ALL = ['light', 'dark', 'aurora', 'carbon', 'solar'];
+          var t = localStorage.getItem('flowsphere-theme');
+          if (!t || ALL.indexOf(t) === -1) t = 'dark';
+          var html = document.documentElement;
+          ALL.forEach(function (id) { html.classList.remove('theme-' + id); });
+          html.classList.remove('light', 'dark');
+          if (t === 'light') html.classList.add('light');
+          else html.classList.add('dark');
+          if (t !== 'light' && t !== 'dark') html.classList.add('theme-' + t);
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

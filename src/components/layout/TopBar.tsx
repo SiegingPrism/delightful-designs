@@ -1,24 +1,19 @@
-import { useEffect, useState } from "react";
 import { Moon, Sun, Bell, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
-import { applyTheme, getTheme, type Theme } from "@/lib/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useAppStore } from "@/lib/store";
 
 export const TopBar = ({ title, eyebrow, subtitle }: { title: string; eyebrow?: string; subtitle?: string }) => {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useTheme();
   const userName = useAppStore((s) => s.userName);
 
-  useEffect(() => {
-    const t = getTheme();
-    setTheme(t);
-    applyTheme(t);
-  }, []);
-
+  // Toggle only flips between the two free themes; unlocked themes are
+  // chosen from Settings. Any custom theme leaves the toggle as a "go dark" hint.
   const toggle = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    applyTheme(next);
+    if (theme === "light") setTheme("dark");
+    else setTheme("light");
   };
+  const showSun = theme !== "light";
 
   return (
     <header className="flex items-start justify-between gap-4 mb-6 animate-fade-in-up">
@@ -35,7 +30,7 @@ export const TopBar = ({ title, eyebrow, subtitle }: { title: string; eyebrow?: 
           className="w-10 h-10 rounded-xl glass flex items-center justify-center hover:scale-105 transition-bounce text-foreground"
           aria-label="Toggle theme"
         >
-          {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {showSun ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
         <Link
           to="/calendar"
