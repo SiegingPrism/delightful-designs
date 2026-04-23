@@ -15,7 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const SettingsPage = () => {
-  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession } = useAppStore();
+  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal } = useAppStore();
+  const { user, signOut } = useAuth();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useTheme();
   const userLevel = levelFromXp(totalXP).level;
