@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAppStore } from "@/lib/store";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { ThemeUnlockWatcher } from "@/components/shared/ThemeUnlockWatcher";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Tasks from "./pages/Tasks.tsx";
@@ -27,15 +28,16 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        {!onboardedAt ? (
-          <OnboardingWizard />
-        ) : (
-          <BrowserRouter>
-            <ThemeUnlockWatcher />
-            <Routes>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {!onboardedAt ? (
+            <OnboardingWizard />
+          ) : (
+            <BrowserRouter>
+              <ThemeUnlockWatcher />
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/focus" element={<Focus />} />
@@ -49,8 +51,9 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        )}
-      </TooltipProvider>
+          )}
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
