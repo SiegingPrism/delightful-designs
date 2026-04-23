@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { supabase } from "@/integrations/supabase/client";
 import {
   type ActionSource,
   type Branch,
@@ -21,7 +22,7 @@ export interface Task {
   category: TaskCategory;
   durationMin: number;
   xp: number;
-  dueDate?: string; // ISO
+  dueDate?: string;
   completed: boolean;
   completedAt?: string;
   createdAt: string;
@@ -31,9 +32,9 @@ export interface Habit {
   id: string;
   name: string;
   emoji: string;
-  color: string; // semantic color name
+  color: string;
   targetPerWeek: number;
-  history: string[]; // ISO date strings (YYYY-MM-DD) when checked off
+  history: string[];
   createdAt: string;
   category?: TaskCategory;
 }
@@ -46,7 +47,7 @@ export interface FocusSession {
 }
 
 export interface HealthLog {
-  date: string; // YYYY-MM-DD
+  date: string;
   waterMl: number;
   steps: number;
   mood?: 1 | 2 | 3 | 4 | 5;
@@ -64,6 +65,11 @@ export interface XPEvent {
 }
 
 interface AppState {
+  // Auth-bound state
+  userId: string | null;
+  hydrated: boolean; // true once we've loaded data for the current user
+
+  // Data
   tasks: Task[];
   habits: Habit[];
   focusSessions: FocusSession[];
@@ -72,7 +78,6 @@ interface AppState {
   totalXP: number;
   userName: string;
 
-  // Onboarding / preferences
   onboardedAt?: string;
   primaryGoal?: PrimaryGoal;
   dailyFocusTargetMin: number;
@@ -95,7 +100,7 @@ interface AppState {
   logHealth: (patch: Partial<HealthLog> & { date?: string }) => void;
   setMood: (mood: 1 | 2 | 3 | 4 | 5) => void;
 
-  // XP — internal-ish but exposed for callers that already know their source
+  // XP
   awardFor: (source: ActionSource, reason: string) => number;
 
   // Onboarding
@@ -111,32 +116,37 @@ interface AppState {
   setUserName: (name: string) => void;
   setDailyFocusTarget: (min: number) => void;
 
-  // Dev / debug
+  // Cloud lifecycle
+  bindUser: (userId: string | null) => Promise<void>;
+  clearLocal: () => void;
+
+  // Dev
   grantDebugXp: (amount: number, reason?: string) => void;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
-const uid = () => Math.random().toString(36).slice(2, 11);
-
-const seedTasks = (): Task[] => {
-  const now = new Date().toISOString();
-  return [
-    { id: uid(), title: "Review weekly priorities", priority: "high", category: "work", durationMin: 25, xp: 20, completed: false, createdAt: now, dueDate: today() },
-    { id: uid(), title: "30-min focused walk", priority: "medium", category: "health", durationMin: 30, xp: 10, completed: false, createdAt: now, dueDate: today() },
-    { id: uid(), title: "Read 10 pages", priority: "low", category: "learning", durationMin: 15, xp: 5, completed: true, completedAt: now, createdAt: now, dueDate: today() },
-  ];
-};
-
-const seedHabits = (): Habit[] => {
-  const now = new Date().toISOString();
-  return [
-    { id: uid(), name: "Drink water", emoji: "💧", color: "accent", targetPerWeek: 7, history: [today()], createdAt: now, category: "health" },
-    { id: uid(), name: "Workout", emoji: "🏋️", color: "primary", targetPerWeek: 4, history: [], createdAt: now, category: "health" },
-    { id: uid(), name: "Read", emoji: "📚", color: "success", targetPerWeek: 5, history: [today()], createdAt: now, category: "learning" },
-  ];
-};
+const uid = () => crypto.randomUUID();
 
 const TASK_BASE: Record<Priority, number> = { low: 5, medium: 10, high: 20, urgent: 35 };
+
+const EMPTY_STATE = {
+  tasks: [] as Task[],
+  habits: [] as Habit[],
+  focusSessions: [] as FocusSession[],
+  healthLogs: [] as HealthLog[],
+  xpHistory: [] as XPEvent[],
+  totalXP: 0,
+  userName: "Friend",
+  dailyFocusTargetMin: 50,
+  onboardedAt: undefined as string | undefined,
+  primaryGoal: undefined as PrimaryGoal | undefined,
+};
+
+// ---- background-safe write helpers (silent on error, won't crash UI) ----
+// Accepts a Promise OR a Supabase query builder (which is thenable).
+const safe = (p: PromiseLike<unknown>): void => {
+  Promise.resolve(p).catch((err) => console.error("[cloud sync]", err));
+};
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -164,39 +174,69 @@ export const useAppStore = create<AppState>()(
           totalXP: s.totalXP + amount,
           xpHistory: [event, ...s.xpHistory].slice(0, 200),
         }));
+
+        const userId = get().userId;
+        if (userId) {
+          safe(
+            (async () => {
+              await supabase.from("xp_events").insert({
+                user_id: userId,
+                amount,
+                reason,
+                branch,
+                source_type: source.type,
+              });
+              await supabase
+                .from("profiles")
+                .update({ total_xp: get().totalXP })
+                .eq("user_id", userId);
+            })(),
+          );
+        }
         return amount;
       };
 
       return {
-        tasks: seedTasks(),
-        habits: seedHabits(),
-        focusSessions: [],
-        healthLogs: [{ date: today(), waterMl: 500, steps: 3200, workouts: 0 }],
-        xpHistory: [],
-        totalXP: 0,
-        userName: "Alex",
-        dailyFocusTargetMin: 50,
+        userId: null,
+        hydrated: false,
+        ...EMPTY_STATE,
 
         addTask: (t) => {
           const xp = t.xp ?? TASK_BASE[t.priority];
+          const id = uid();
           const task: Task = {
-            id: uid(),
+            id,
             createdAt: new Date().toISOString(),
             completed: false,
             xp,
             ...t,
           };
           set((s) => ({ tasks: [task, ...s.tasks] }));
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase.from("tasks").insert({
+                id,
+                user_id: userId,
+                title: task.title,
+                notes: task.notes ?? null,
+                priority: task.priority,
+                category: task.category,
+                duration_min: task.durationMin,
+                xp: task.xp,
+                due_date: task.dueDate ?? null,
+              }),
+            );
+          }
         },
         toggleTask: (id) => {
           const task = get().tasks.find((t) => t.id === id);
           if (!task) return;
           const willComplete = !task.completed;
+          const completedAt = willComplete ? new Date().toISOString() : undefined;
           set((s) => ({
             tasks: s.tasks.map((t) =>
-              t.id === id
-                ? { ...t, completed: willComplete, completedAt: willComplete ? new Date().toISOString() : undefined }
-                : t,
+              t.id === id ? { ...t, completed: willComplete, completedAt } : t,
             ),
           }));
           if (willComplete) {
@@ -205,18 +245,61 @@ export const useAppStore = create<AppState>()(
               `Completed: ${task.title}`,
             );
           }
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase
+                .from("tasks")
+                .update({ completed: willComplete, completed_at: completedAt ?? null })
+                .eq("id", id),
+            );
+          }
         },
-        removeTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
-        updateTask: (id, patch) =>
-          set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
+        removeTask: (id) => {
+          set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }));
+          const userId = get().userId;
+          if (userId) safe(supabase.from("tasks").delete().eq("id", id));
+        },
+        updateTask: (id, patch) => {
+          set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase
+                .from("tasks")
+                .update({
+                  title: patch.title,
+                  notes: patch.notes,
+                  priority: patch.priority,
+                  category: patch.category,
+                  duration_min: patch.durationMin,
+                  xp: patch.xp,
+                  due_date: patch.dueDate ?? null,
+                })
+                .eq("id", id),
+            );
+          }
+        },
 
-        addHabit: (h) =>
-          set((s) => ({
-            habits: [
-              ...s.habits,
-              { ...h, id: uid(), history: [], createdAt: new Date().toISOString() },
-            ],
-          })),
+        addHabit: (h) => {
+          const id = uid();
+          const habit: Habit = { ...h, id, history: [], createdAt: new Date().toISOString() };
+          set((s) => ({ habits: [...s.habits, habit] }));
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase.from("habits").insert({
+                id,
+                user_id: userId,
+                name: habit.name,
+                emoji: habit.emoji,
+                color: habit.color,
+                target_per_week: habit.targetPerWeek,
+                category: habit.category ?? null,
+              }),
+            );
+          }
+        },
         toggleHabitToday: (id) => {
           const t = today();
           const habit = get().habits.find((h) => h.id === id);
@@ -235,35 +318,84 @@ export const useAppStore = create<AppState>()(
               `Habit: ${habit.name}`,
             );
           }
+          const userId = get().userId;
+          if (userId) {
+            if (has) {
+              safe(
+                supabase
+                  .from("habit_checkins")
+                  .delete()
+                  .eq("habit_id", id)
+                  .eq("date", t),
+              );
+            } else {
+              safe(
+                supabase
+                  .from("habit_checkins")
+                  .insert({ user_id: userId, habit_id: id, date: t }),
+              );
+            }
+          }
         },
-        removeHabit: (id) => set((s) => ({ habits: s.habits.filter((h) => h.id !== id) })),
+        removeHabit: (id) => {
+          set((s) => ({ habits: s.habits.filter((h) => h.id !== id) }));
+          const userId = get().userId;
+          if (userId) safe(supabase.from("habits").delete().eq("id", id));
+        },
 
-        logFocusSession: (s) => {
+        logFocusSession: (input) => {
+          const id = uid();
           const session: FocusSession = {
-            id: uid(),
+            id,
             completedAt: new Date().toISOString(),
-            ...s,
+            ...input,
           };
           set((st) => ({ focusSessions: [session, ...st.focusSessions] }));
-          award({ type: "focus", durationMin: s.durationMin }, `Focus: ${s.durationMin}m`);
+          award({ type: "focus", durationMin: input.durationMin }, `Focus: ${input.durationMin}m`);
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase.from("focus_sessions").insert({
+                id,
+                user_id: userId,
+                task_id: input.taskId ?? null,
+                duration_min: input.durationMin,
+              }),
+            );
+          }
         },
 
         logHealth: (patch) => {
           const date = patch.date ?? today();
+          let next: HealthLog | undefined;
           set((s) => {
             const exists = s.healthLogs.find((l) => l.date === date);
             if (exists) {
+              next = { ...exists, ...patch, date };
               return {
-                healthLogs: s.healthLogs.map((l) => (l.date === date ? { ...l, ...patch, date } : l)),
+                healthLogs: s.healthLogs.map((l) => (l.date === date ? next! : l)),
               };
             }
-            return {
-              healthLogs: [
-                { date, waterMl: 0, steps: 0, workouts: 0, ...patch },
-                ...s.healthLogs,
-              ],
-            };
+            next = { date, waterMl: 0, steps: 0, workouts: 0, ...patch };
+            return { healthLogs: [next, ...s.healthLogs] };
           });
+          const userId = get().userId;
+          if (userId && next) {
+            safe(
+              supabase.from("health_logs").upsert(
+                {
+                  user_id: userId,
+                  date,
+                  water_ml: next.waterMl,
+                  steps: next.steps,
+                  workouts: next.workouts,
+                  mood: next.mood ?? null,
+                  sleep_hours: next.sleepHours ?? null,
+                },
+                { onConflict: "user_id,date" },
+              ),
+            );
+          }
         },
         setMood: (mood) => {
           get().logHealth({ mood });
@@ -274,7 +406,7 @@ export const useAppStore = create<AppState>()(
 
         completeOnboarding: ({ userName, primaryGoal, dailyFocusTargetMin, starterHabits }) => {
           const now = new Date().toISOString();
-          const habits: Habit[] = starterHabits.map((h) => ({
+          const newHabits: Habit[] = starterHabits.map((h) => ({
             ...h,
             id: uid(),
             history: [],
@@ -285,16 +417,76 @@ export const useAppStore = create<AppState>()(
             primaryGoal,
             dailyFocusTargetMin,
             onboardedAt: now,
-            // append starter habits, keep any existing seeds the user may already have toggled
-            habits: [...habits, ...s.habits],
+            habits: [...newHabits, ...s.habits],
           }));
-          // Award the welcome login XP
           award({ type: "login" }, "Welcome to FlowSphere");
+
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase
+                .from("profiles")
+                .update({
+                  display_name: userName,
+                  primary_goal: primaryGoal,
+                  daily_focus_target_min: dailyFocusTargetMin,
+                  onboarded_at: now,
+                })
+                .eq("user_id", userId),
+            );
+            if (newHabits.length) {
+              safe(
+                supabase.from("habits").insert(
+                  newHabits.map((h) => ({
+                    id: h.id,
+                    user_id: userId,
+                    name: h.name,
+                    emoji: h.emoji,
+                    color: h.color,
+                    target_per_week: h.targetPerWeek,
+                    category: h.category ?? null,
+                  })),
+                ),
+              );
+            }
+          }
         },
         resetOnboarding: () => set({ onboardedAt: undefined }),
 
-        setUserName: (name) => set({ userName: name }),
-        setDailyFocusTarget: (min) => set({ dailyFocusTargetMin: min }),
+        setUserName: (name) => {
+          set({ userName: name });
+          const userId = get().userId;
+          if (userId) {
+            safe(supabase.from("profiles").update({ display_name: name }).eq("user_id", userId));
+          }
+        },
+        setDailyFocusTarget: (min) => {
+          set({ dailyFocusTargetMin: min });
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase
+                .from("profiles")
+                .update({ daily_focus_target_min: min })
+                .eq("user_id", userId),
+            );
+          }
+        },
+
+        // ----- cloud lifecycle -----
+        bindUser: async (userId) => {
+          if (!userId) {
+            set({ userId: null, hydrated: false, ...EMPTY_STATE });
+            return;
+          }
+          // Same user already loaded — skip.
+          if (get().userId === userId && get().hydrated) return;
+
+          set({ userId, hydrated: false });
+          await hydrateFromCloud(userId, get, set);
+          set({ hydrated: true });
+        },
+        clearLocal: () => set({ userId: null, hydrated: false, ...EMPTY_STATE }),
 
         grantDebugXp: (amount, reason = "Debug XP grant") => {
           const event: XPEvent = {
@@ -309,20 +501,272 @@ export const useAppStore = create<AppState>()(
             totalXP: s.totalXP + amount,
             xpHistory: [event, ...s.xpHistory].slice(0, 200),
           }));
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              (async () => {
+                await supabase.from("xp_events").insert({
+                  user_id: userId,
+                  amount,
+                  reason,
+                  branch: "craft",
+                  source_type: "login",
+                });
+                await supabase
+                  .from("profiles")
+                  .update({ total_xp: get().totalXP })
+                  .eq("user_id", userId);
+              })(),
+            );
+          }
         },
       };
     },
-    { name: "flowsphere-store", version: 2 },
+    {
+      name: "flowsphere-store",
+      version: 3,
+      // Only persist data, not auth-bound flags
+      partialize: (s) => ({
+        tasks: s.tasks,
+        habits: s.habits,
+        focusSessions: s.focusSessions,
+        healthLogs: s.healthLogs,
+        xpHistory: s.xpHistory,
+        totalXP: s.totalXP,
+        userName: s.userName,
+        onboardedAt: s.onboardedAt,
+        primaryGoal: s.primaryGoal,
+        dailyFocusTargetMin: s.dailyFocusTargetMin,
+      }),
+    },
   ),
 );
 
-// Re-export for backwards compatibility with components
+// ---------------------------------------------------------------------------
+// Cloud hydration
+// ---------------------------------------------------------------------------
+
+async function hydrateFromCloud(
+  userId: string,
+  get: () => AppState,
+  set: (partial: Partial<AppState>) => void,
+) {
+  try {
+    const [profileRes, tasksRes, habitsRes, checkinsRes, focusRes, healthRes, xpRes] =
+      await Promise.all([
+        supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("tasks").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+        supabase.from("habits").select("*").eq("user_id", userId).is("archived_at", null),
+        supabase.from("habit_checkins").select("*").eq("user_id", userId),
+        supabase.from("focus_sessions").select("*").eq("user_id", userId).order("completed_at", { ascending: false }).limit(500),
+        supabase.from("health_logs").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(180),
+        supabase.from("xp_events").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(200),
+      ]);
+
+    const profile = profileRes.data;
+
+    // First-login migration: if cloud is empty AND localStorage has data, push it up.
+    const cloudEmpty =
+      (tasksRes.data?.length ?? 0) === 0 &&
+      (habitsRes.data?.length ?? 0) === 0 &&
+      (xpRes.data?.length ?? 0) === 0;
+
+    const local = get();
+    const localHasData =
+      local.tasks.length > 0 ||
+      local.habits.length > 0 ||
+      local.xpHistory.length > 0 ||
+      local.totalXP > 0 ||
+      local.onboardedAt;
+
+    if (cloudEmpty && localHasData) {
+      await migrateLocalToCloud(userId, local);
+      // Re-fetch after migration
+      await hydrateFromCloud(userId, get, set);
+      return;
+    }
+
+    // Build habit history from check-ins
+    const checkinsByHabit = new Map<string, string[]>();
+    for (const c of checkinsRes.data ?? []) {
+      const arr = checkinsByHabit.get(c.habit_id) ?? [];
+      arr.push(c.date);
+      checkinsByHabit.set(c.habit_id, arr);
+    }
+
+    set({
+      tasks: (tasksRes.data ?? []).map((t) => ({
+        id: t.id,
+        title: t.title,
+        notes: t.notes ?? undefined,
+        priority: t.priority as Priority,
+        category: t.category as TaskCategory,
+        durationMin: t.duration_min,
+        xp: t.xp,
+        dueDate: t.due_date ?? undefined,
+        completed: t.completed,
+        completedAt: t.completed_at ?? undefined,
+        createdAt: t.created_at,
+      })),
+      habits: (habitsRes.data ?? []).map((h) => ({
+        id: h.id,
+        name: h.name,
+        emoji: h.emoji,
+        color: h.color,
+        targetPerWeek: h.target_per_week,
+        category: (h.category ?? undefined) as TaskCategory | undefined,
+        history: checkinsByHabit.get(h.id) ?? [],
+        createdAt: h.created_at,
+      })),
+      focusSessions: (focusRes.data ?? []).map((f) => ({
+        id: f.id,
+        taskId: f.task_id ?? undefined,
+        durationMin: f.duration_min,
+        completedAt: f.completed_at,
+      })),
+      healthLogs: (healthRes.data ?? []).map((l) => ({
+        date: l.date,
+        waterMl: l.water_ml,
+        steps: l.steps,
+        workouts: l.workouts,
+        mood: (l.mood ?? undefined) as HealthLog["mood"],
+        sleepHours: l.sleep_hours ?? undefined,
+      })),
+      xpHistory: (xpRes.data ?? []).map((e) => ({
+        id: e.id,
+        amount: e.amount,
+        reason: e.reason,
+        branch: e.branch as Branch,
+        sourceType: e.source_type as XPEvent["sourceType"],
+        at: e.at,
+      })),
+      totalXP: profile?.total_xp ?? 0,
+      userName: profile?.display_name ?? "Friend",
+      primaryGoal: (profile?.primary_goal ?? undefined) as PrimaryGoal | undefined,
+      dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
+      onboardedAt: profile?.onboarded_at ?? undefined,
+    });
+  } catch (err) {
+    console.error("[hydrate] failed:", err);
+    // Fall back to localStorage cache (already in store)
+  }
+}
+
+async function migrateLocalToCloud(userId: string, local: AppState) {
+  try {
+    const inserts: PromiseLike<unknown>[] = [];
+
+    // Profile
+    inserts.push(
+      supabase
+        .from("profiles")
+        .update({
+          display_name: local.userName,
+          primary_goal: local.primaryGoal ?? null,
+          daily_focus_target_min: local.dailyFocusTargetMin,
+          onboarded_at: local.onboardedAt ?? null,
+          total_xp: local.totalXP,
+        })
+        .eq("user_id", userId),
+    );
+
+    // Map old (non-uuid) ids to fresh uuids
+    const taskIdMap = new Map<string, string>();
+    const habitIdMap = new Map<string, string>();
+    const remap = (oldId: string, map: Map<string, string>) => {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(oldId);
+      const newId = isUuid ? oldId : uid();
+      map.set(oldId, newId);
+      return newId;
+    };
+
+    if (local.tasks.length) {
+      const rows = local.tasks.map((t) => ({
+        id: remap(t.id, taskIdMap),
+        user_id: userId,
+        title: t.title,
+        notes: t.notes ?? null,
+        priority: t.priority,
+        category: t.category,
+        duration_min: t.durationMin,
+        xp: t.xp,
+        due_date: t.dueDate ?? null,
+        completed: t.completed,
+        completed_at: t.completedAt ?? null,
+      }));
+      inserts.push(supabase.from("tasks").insert(rows));
+    }
+
+    if (local.habits.length) {
+      const rows = local.habits.map((h) => ({
+        id: remap(h.id, habitIdMap),
+        user_id: userId,
+        name: h.name,
+        emoji: h.emoji,
+        color: h.color,
+        target_per_week: h.targetPerWeek,
+        category: h.category ?? null,
+      }));
+      inserts.push(supabase.from("habits").insert(rows));
+
+      const checkinRows = local.habits.flatMap((h) =>
+        h.history.map((date) => ({
+          user_id: userId,
+          habit_id: habitIdMap.get(h.id)!,
+          date,
+        })),
+      );
+      if (checkinRows.length) {
+        inserts.push(supabase.from("habit_checkins").insert(checkinRows));
+      }
+    }
+
+    if (local.focusSessions.length) {
+      const rows = local.focusSessions.map((f) => ({
+        user_id: userId,
+        task_id: f.taskId ? taskIdMap.get(f.taskId) ?? null : null,
+        duration_min: f.durationMin,
+        completed_at: f.completedAt,
+      }));
+      inserts.push(supabase.from("focus_sessions").insert(rows));
+    }
+
+    if (local.healthLogs.length) {
+      const rows = local.healthLogs.map((l) => ({
+        user_id: userId,
+        date: l.date,
+        water_ml: l.waterMl,
+        steps: l.steps,
+        workouts: l.workouts,
+        mood: l.mood ?? null,
+        sleep_hours: l.sleepHours ?? null,
+      }));
+      inserts.push(supabase.from("health_logs").upsert(rows, { onConflict: "user_id,date" }));
+    }
+
+    if (local.xpHistory.length) {
+      const rows = local.xpHistory.map((e) => ({
+        user_id: userId,
+        amount: e.amount,
+        reason: e.reason,
+        branch: e.branch,
+        source_type: e.sourceType,
+        at: e.at,
+      }));
+      inserts.push(supabase.from("xp_events").insert(rows));
+    }
+
+    await Promise.all(inserts);
+  } catch (err) {
+    console.error("[migration] failed:", err);
+  }
+}
+
 export const todayKey = today;
 
 /** @deprecated use levelFromXp from src/lib/gamification.ts */
 export const getLevel = (xp: number) => {
   const info = levelFromXp(xp);
-  // Match old shape: level, xpInLevel, xpToNext (but old API used level starting at 1)
   return {
     level: Math.max(1, info.level),
     xpInLevel: info.xpInLevel,

@@ -14,7 +14,265 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      focus_sessions: {
+        Row: {
+          completed_at: string
+          duration_min: number
+          id: string
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          duration_min: number
+          id?: string
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          duration_min?: number
+          id?: string
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_sessions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habit_checkins: {
+        Row: {
+          created_at: string
+          date: string
+          habit_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          habit_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          habit_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_checkins_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          archived_at: string | null
+          category: string | null
+          color: string
+          created_at: string
+          emoji: string
+          id: string
+          name: string
+          target_per_week: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category?: string | null
+          color?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          name: string
+          target_per_week?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          category?: string | null
+          color?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          name?: string
+          target_per_week?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_logs: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          mood: number | null
+          sleep_hours: number | null
+          steps: number
+          updated_at: string
+          user_id: string
+          water_ml: number
+          workouts: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          mood?: number | null
+          sleep_hours?: number | null
+          steps?: number
+          updated_at?: string
+          user_id: string
+          water_ml?: number
+          workouts?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          mood?: number | null
+          sleep_hours?: number | null
+          steps?: number
+          updated_at?: string
+          user_id?: string
+          water_ml?: number
+          workouts?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          daily_focus_target_min: number
+          display_name: string
+          id: string
+          onboarded_at: string | null
+          primary_goal: string | null
+          theme: string
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_focus_target_min?: number
+          display_name?: string
+          id?: string
+          onboarded_at?: string | null
+          primary_goal?: string | null
+          theme?: string
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_focus_target_min?: number
+          display_name?: string
+          id?: string
+          onboarded_at?: string | null
+          primary_goal?: string | null
+          theme?: string
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          category: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          duration_min: number
+          id: string
+          notes: string | null
+          priority: string
+          title: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          category?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          duration_min?: number
+          id?: string
+          notes?: string | null
+          priority?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          category?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          duration_min?: number
+          id?: string
+          notes?: string | null
+          priority?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      xp_events: {
+        Row: {
+          amount: number
+          at: string
+          branch: string
+          id: string
+          reason: string
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          at?: string
+          branch: string
+          id?: string
+          reason: string
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          at?: string
+          branch?: string
+          id?: string
+          reason?: string
+          source_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

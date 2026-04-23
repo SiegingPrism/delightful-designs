@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle, LogOut, Mail } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
@@ -11,9 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const SettingsPage = () => {
-  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession } = useAppStore();
+  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal } = useAppStore();
+  const { user, signOut } = useAuth();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useTheme();
   const userLevel = levelFromXp(totalXP).level;
@@ -38,25 +41,29 @@ const SettingsPage = () => {
 
   const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const json = JSON.parse(reader.result as string);
-        const persisted = JSON.parse(localStorage.getItem("flowsphere-store") ?? "{}");
-        persisted.state = { ...persisted.state, ...json };
-        localStorage.setItem("flowsphere-store", JSON.stringify(persisted));
-        toast.success("Data imported. Reloading…");
-        setTimeout(() => window.location.reload(), 800);
-      } catch { toast.error("Invalid file"); }
-    };
-    reader.readAsText(file);
+    toast.error("Import is no longer supported now that data syncs to the cloud. Use Export to keep a backup.");
+    e.target.value = "";
   };
 
-  const resetAll = () => {
-    if (!confirm("This will erase all your tasks, habits, and progress. Continue?")) return;
-    localStorage.removeItem("flowsphere-store");
-    toast.success("Reset complete. Reloading…");
-    setTimeout(() => window.location.reload(), 800);
+  const resetAll = async () => {
+    if (!user) return;
+    if (!confirm("This will permanently erase all your tasks, habits, focus sessions, and progress. Continue?")) return;
+    try {
+      await Promise.all([
+        supabase.from("tasks").delete().eq("user_id", user.id),
+        supabase.from("habits").delete().eq("user_id", user.id),
+        supabase.from("focus_sessions").delete().eq("user_id", user.id),
+        supabase.from("health_logs").delete().eq("user_id", user.id),
+        supabase.from("xp_events").delete().eq("user_id", user.id),
+        supabase.from("profiles").update({ total_xp: 0, onboarded_at: null, primary_goal: null }).eq("user_id", user.id),
+      ]);
+      clearLocal();
+      localStorage.removeItem("flowsphere-store");
+      toast.success("Reset complete. Reloading…");
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reset data.");
+    }
   };
 
   const switchTheme = (t: Theme) => {
@@ -87,9 +94,20 @@ const SettingsPage = () => {
           </div>
           <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><User className="w-3 h-3" /> Display name</label>
           <div className="flex gap-2">
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={64} />
             <Button onClick={() => { setUserName(name.trim() || "Friend"); toast.success("Name updated"); }} className="bg-gradient-primary">Save</Button>
           </div>
+          {user?.email && (
+            <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="w-3 h-3" /> Signed in as</p>
+                <p className="text-sm font-medium truncate">{user.email}</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                <LogOut className="w-3.5 h-3.5 mr-1" /> Sign out
+              </Button>
+            </div>
+          )}
         </FadeIn>
 
         <FadeIn delay={0.05} className="glass-card">
