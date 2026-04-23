@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle, LogOut, Mail } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const SettingsPage = () => {
   const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession } = useAppStore();
