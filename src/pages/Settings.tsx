@@ -41,25 +41,29 @@ const SettingsPage = () => {
 
   const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const json = JSON.parse(reader.result as string);
-        const persisted = JSON.parse(localStorage.getItem("flowsphere-store") ?? "{}");
-        persisted.state = { ...persisted.state, ...json };
-        localStorage.setItem("flowsphere-store", JSON.stringify(persisted));
-        toast.success("Data imported. Reloading…");
-        setTimeout(() => window.location.reload(), 800);
-      } catch { toast.error("Invalid file"); }
-    };
-    reader.readAsText(file);
+    toast.error("Import is no longer supported now that data syncs to the cloud. Use Export to keep a backup.");
+    e.target.value = "";
   };
 
-  const resetAll = () => {
-    if (!confirm("This will erase all your tasks, habits, and progress. Continue?")) return;
-    localStorage.removeItem("flowsphere-store");
-    toast.success("Reset complete. Reloading…");
-    setTimeout(() => window.location.reload(), 800);
+  const resetAll = async () => {
+    if (!user) return;
+    if (!confirm("This will permanently erase all your tasks, habits, focus sessions, and progress. Continue?")) return;
+    try {
+      await Promise.all([
+        supabase.from("tasks").delete().eq("user_id", user.id),
+        supabase.from("habits").delete().eq("user_id", user.id),
+        supabase.from("focus_sessions").delete().eq("user_id", user.id),
+        supabase.from("health_logs").delete().eq("user_id", user.id),
+        supabase.from("xp_events").delete().eq("user_id", user.id),
+        supabase.from("profiles").update({ total_xp: 0, onboarded_at: null, primary_goal: null }).eq("user_id", user.id),
+      ]);
+      clearLocal();
+      localStorage.removeItem("flowsphere-store");
+      toast.success("Reset complete. Reloading…");
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reset data.");
+    }
   };
 
   const switchTheme = (t: Theme) => {
