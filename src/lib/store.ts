@@ -143,12 +143,9 @@ const EMPTY_STATE = {
 };
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
-const safe = async <T,>(p: Promise<T>): Promise<void> => {
-  try {
-    await p;
-  } catch (err) {
-    console.error("[cloud sync]", err);
-  }
+// Accepts a Promise OR a Supabase query builder (which is thenable).
+const safe = (p: PromiseLike<unknown>): void => {
+  Promise.resolve(p).catch((err) => console.error("[cloud sync]", err));
 };
 
 export const useAppStore = create<AppState>()(
