@@ -106,9 +106,9 @@ export const injectThemeDirect = (t: Theme) => {
   root.classList.add(`theme-${cfg.id}`);
   root.style.colorScheme = cfg.scheme;
 
+  const tokens = cfg.tokens as unknown as Record<string, string>;
   for (const [key, cssVar] of TOKEN_VARS) {
-    // @ts-expect-error indexed access
-    root.style.setProperty(cssVar, cfg.tokens[key]);
+    root.style.setProperty(cssVar, tokens[key]);
   }
   root.style.setProperty("--gradient-primary", cfg.gradients.primary);
   root.style.setProperty("--gradient-accent", cfg.gradients.accent);
