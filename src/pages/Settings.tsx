@@ -94,9 +94,20 @@ const SettingsPage = () => {
           </div>
           <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><User className="w-3 h-3" /> Display name</label>
           <div className="flex gap-2">
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={64} />
             <Button onClick={() => { setUserName(name.trim() || "Friend"); toast.success("Name updated"); }} className="bg-gradient-primary">Save</Button>
           </div>
+          {user?.email && (
+            <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="w-3 h-3" /> Signed in as</p>
+                <p className="text-sm font-medium truncate">{user.email}</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                <LogOut className="w-3.5 h-3.5 mr-1" /> Sign out
+              </Button>
+            </div>
+          )}
         </FadeIn>
 
         <FadeIn delay={0.05} className="glass-card">
