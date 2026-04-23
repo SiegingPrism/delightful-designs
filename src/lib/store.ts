@@ -654,7 +654,7 @@ async function hydrateFromCloud(
 
 async function migrateLocalToCloud(userId: string, local: AppState) {
   try {
-    const inserts: Promise<unknown>[] = [];
+    const inserts: PromiseLike<unknown>[] = [];
 
     // Profile
     inserts.push(
