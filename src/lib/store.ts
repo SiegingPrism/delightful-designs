@@ -395,12 +395,15 @@ export const useAppStore = create<AppState>()(
           const userId = get().userId;
           if (userId) {
             safe(
-              supabase.from("focus_sessions").insert({
-                id,
-                user_id: userId,
-                task_id: input.taskId ?? null,
-                duration_min: input.durationMin,
-              }),
+              (async () => {
+                await supabase.from("focus_sessions").insert({
+                  id,
+                  user_id: userId,
+                  task_id: input.taskId ?? null,
+                  duration_min: input.durationMin,
+                });
+                await refreshDerived(userId, set);
+              })(),
             );
           }
         },
@@ -568,7 +571,7 @@ export const useAppStore = create<AppState>()(
     },
     {
       name: "flowsphere-store",
-      version: 3,
+      version: 4,
       // Only persist data, not auth-bound flags
       partialize: (s) => ({
         tasks: s.tasks,
