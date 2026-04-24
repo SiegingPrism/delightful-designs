@@ -64,6 +64,21 @@ export interface XPEvent {
   at: string;
 }
 
+export interface DailyStat {
+  date: string;
+  tasksCompleted: number;
+  tasksPlanned: number;
+  focusMinutes: number;
+  xpEarned: number;
+  productivityScore: number;
+  streakKept: boolean;
+}
+
+export interface UserAchievement {
+  achievementId: string;
+  unlockedAt: string;
+}
+
 interface AppState {
   // Auth-bound state
   userId: string | null;
@@ -75,7 +90,13 @@ interface AppState {
   focusSessions: FocusSession[];
   healthLogs: HealthLog[];
   xpHistory: XPEvent[];
+  dailyStats: DailyStat[];
+  unlockedAchievements: UserAchievement[];
   totalXP: number;
+  level: number;
+  currentStreak: number;
+  longestStreak: number;
+  tasksCompletedTotal: number;
   userName: string;
 
   onboardedAt?: string;
@@ -135,7 +156,13 @@ const EMPTY_STATE = {
   focusSessions: [] as FocusSession[],
   healthLogs: [] as HealthLog[],
   xpHistory: [] as XPEvent[],
+  dailyStats: [] as DailyStat[],
+  unlockedAchievements: [] as UserAchievement[],
   totalXP: 0,
+  level: 0,
+  currentStreak: 0,
+  longestStreak: 0,
+  tasksCompletedTotal: 0,
   userName: "Friend",
   dailyFocusTargetMin: 50,
   onboardedAt: undefined as string | undefined,
@@ -170,10 +197,14 @@ export const useAppStore = create<AppState>()(
           sourceType: source.type,
           at: new Date().toISOString(),
         };
-        set((s) => ({
-          totalXP: s.totalXP + amount,
-          xpHistory: [event, ...s.xpHistory].slice(0, 200),
-        }));
+        set((s) => {
+          const newTotal = s.totalXP + amount;
+          return {
+            totalXP: newTotal,
+            level: levelFromXp(newTotal).level,
+            xpHistory: [event, ...s.xpHistory].slice(0, 200),
+          };
+        });
 
         const userId = get().userId;
         if (userId) {
@@ -238,6 +269,10 @@ export const useAppStore = create<AppState>()(
             tasks: s.tasks.map((t) =>
               t.id === id ? { ...t, completed: willComplete, completedAt } : t,
             ),
+            tasksCompletedTotal: Math.max(
+              0,
+              s.tasksCompletedTotal + (willComplete ? 1 : -1),
+            ),
           }));
           if (willComplete) {
             award(
@@ -248,10 +283,15 @@ export const useAppStore = create<AppState>()(
           const userId = get().userId;
           if (userId) {
             safe(
-              supabase
-                .from("tasks")
-                .update({ completed: willComplete, completed_at: completedAt ?? null })
-                .eq("id", id),
+              (async () => {
+                await supabase
+                  .from("tasks")
+                  .update({ completed: willComplete, completed_at: completedAt ?? null })
+                  .eq("id", id);
+                // Server triggers will recompute daily_stats / streak / achievements.
+                // Pull the freshest counters so the UI matches the DB.
+                await refreshDerived(userId, set);
+              })(),
             );
           }
         },
@@ -355,12 +395,15 @@ export const useAppStore = create<AppState>()(
           const userId = get().userId;
           if (userId) {
             safe(
-              supabase.from("focus_sessions").insert({
-                id,
-                user_id: userId,
-                task_id: input.taskId ?? null,
-                duration_min: input.durationMin,
-              }),
+              (async () => {
+                await supabase.from("focus_sessions").insert({
+                  id,
+                  user_id: userId,
+                  task_id: input.taskId ?? null,
+                  duration_min: input.durationMin,
+                });
+                await refreshDerived(userId, set);
+              })(),
             );
           }
         },
@@ -497,10 +540,14 @@ export const useAppStore = create<AppState>()(
             sourceType: "login",
             at: new Date().toISOString(),
           };
-          set((s) => ({
-            totalXP: s.totalXP + amount,
-            xpHistory: [event, ...s.xpHistory].slice(0, 200),
-          }));
+          set((s) => {
+            const newTotal = s.totalXP + amount;
+            return {
+              totalXP: newTotal,
+              level: levelFromXp(newTotal).level,
+              xpHistory: [event, ...s.xpHistory].slice(0, 200),
+            };
+          });
           const userId = get().userId;
           if (userId) {
             safe(
@@ -524,7 +571,7 @@ export const useAppStore = create<AppState>()(
     },
     {
       name: "flowsphere-store",
-      version: 3,
+      version: 4,
       // Only persist data, not auth-bound flags
       partialize: (s) => ({
         tasks: s.tasks,
@@ -532,7 +579,13 @@ export const useAppStore = create<AppState>()(
         focusSessions: s.focusSessions,
         healthLogs: s.healthLogs,
         xpHistory: s.xpHistory,
+        dailyStats: s.dailyStats,
+        unlockedAchievements: s.unlockedAchievements,
         totalXP: s.totalXP,
+        level: s.level,
+        currentStreak: s.currentStreak,
+        longestStreak: s.longestStreak,
+        tasksCompletedTotal: s.tasksCompletedTotal,
         userName: s.userName,
         onboardedAt: s.onboardedAt,
         primaryGoal: s.primaryGoal,
@@ -552,16 +605,27 @@ async function hydrateFromCloud(
   set: (partial: Partial<AppState>) => void,
 ) {
   try {
-    const [profileRes, tasksRes, habitsRes, checkinsRes, focusRes, healthRes, xpRes] =
-      await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-        supabase.from("tasks").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-        supabase.from("habits").select("*").eq("user_id", userId).is("archived_at", null),
-        supabase.from("habit_checkins").select("*").eq("user_id", userId),
-        supabase.from("focus_sessions").select("*").eq("user_id", userId).order("completed_at", { ascending: false }).limit(500),
-        supabase.from("health_logs").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(180),
-        supabase.from("xp_events").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(200),
-      ]);
+    const [
+      profileRes,
+      tasksRes,
+      habitsRes,
+      checkinsRes,
+      focusRes,
+      healthRes,
+      xpRes,
+      statsRes,
+      achievementsRes,
+    ] = await Promise.all([
+      supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("tasks").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("habits").select("*").eq("user_id", userId).is("archived_at", null),
+      supabase.from("habit_checkins").select("*").eq("user_id", userId),
+      supabase.from("focus_sessions").select("*").eq("user_id", userId).order("completed_at", { ascending: false }).limit(500),
+      supabase.from("health_logs").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(180),
+      supabase.from("xp_events").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(200),
+      supabase.from("daily_stats").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(120),
+      supabase.from("user_achievements").select("achievement_id, unlocked_at").eq("user_id", userId),
+    ]);
 
     const profile = profileRes.data;
 
@@ -640,7 +704,24 @@ async function hydrateFromCloud(
         sourceType: e.source_type as XPEvent["sourceType"],
         at: e.at,
       })),
+      dailyStats: (statsRes.data ?? []).map((d) => ({
+        date: d.date,
+        tasksCompleted: d.tasks_completed,
+        tasksPlanned: d.tasks_planned,
+        focusMinutes: d.focus_minutes,
+        xpEarned: d.xp_earned,
+        productivityScore: d.productivity_score,
+        streakKept: d.streak_kept,
+      })),
+      unlockedAchievements: (achievementsRes.data ?? []).map((a) => ({
+        achievementId: a.achievement_id,
+        unlockedAt: a.unlocked_at,
+      })),
       totalXP: profile?.total_xp ?? 0,
+      level: profile?.level ?? 0,
+      currentStreak: profile?.current_streak ?? 0,
+      longestStreak: profile?.longest_streak ?? 0,
+      tasksCompletedTotal: profile?.tasks_completed_total ?? 0,
       userName: profile?.display_name ?? "Friend",
       primaryGoal: (profile?.primary_goal ?? undefined) as PrimaryGoal | undefined,
       dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
@@ -649,6 +730,50 @@ async function hydrateFromCloud(
   } catch (err) {
     console.error("[hydrate] failed:", err);
     // Fall back to localStorage cache (already in store)
+  }
+}
+
+/**
+ * Refresh server-derived counters (level, streak, daily stats, achievements).
+ * Called after any action that triggers server-side recomputation.
+ */
+async function refreshDerived(
+  userId: string,
+  set: (partial: Partial<AppState>) => void,
+) {
+  try {
+    const [profileRes, statsRes, achievementsRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("total_xp, level, current_streak, longest_streak, tasks_completed_total, last_active_date")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase.from("daily_stats").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(120),
+      supabase.from("user_achievements").select("achievement_id, unlocked_at").eq("user_id", userId),
+    ]);
+    const profile = profileRes.data;
+    set({
+      totalXP: profile?.total_xp ?? 0,
+      level: profile?.level ?? 0,
+      currentStreak: profile?.current_streak ?? 0,
+      longestStreak: profile?.longest_streak ?? 0,
+      tasksCompletedTotal: profile?.tasks_completed_total ?? 0,
+      dailyStats: (statsRes.data ?? []).map((d) => ({
+        date: d.date,
+        tasksCompleted: d.tasks_completed,
+        tasksPlanned: d.tasks_planned,
+        focusMinutes: d.focus_minutes,
+        xpEarned: d.xp_earned,
+        productivityScore: d.productivity_score,
+        streakKept: d.streak_kept,
+      })),
+      unlockedAchievements: (achievementsRes.data ?? []).map((a) => ({
+        achievementId: a.achievement_id,
+        unlockedAt: a.unlocked_at,
+      })),
+    });
+  } catch (err) {
+    console.error("[refresh] failed:", err);
   }
 }
 

@@ -1,0 +1,87 @@
+/* FullCalendar — themed with FlowSphere tokens */
+
+.fc {
+  --fc-border-color: hsl(var(--border) / 0.4);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--muted) / 0.4);
+  --fc-list-event-hover-bg-color: hsl(var(--primary) / 0.1);
+  --fc-today-bg-color: hsl(var(--primary) / 0.08);
+  --fc-event-text-color: hsl(var(--primary-foreground));
+  font-family: inherit;
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-toolbar-title {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.fc .fc-button {
+  background: hsl(var(--muted) / 0.6);
+  border: 1px solid hsl(var(--border) / 0.4);
+  color: hsl(var(--foreground));
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  box-shadow: none;
+  transition: background 200ms ease;
+}
+
+.fc .fc-button:hover,
+.fc .fc-button:focus {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.5rem 0;
+}
+
+.fc .fc-daygrid-day-number {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  padding: 0.5rem;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: hsl(var(--primary));
+}
+
+.fc .fc-event {
+  border-radius: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 2px 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.fc-task-done {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.fc .fc-popover {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 36px hsl(var(--background) / 0.5);
+}
+
+.fc .fc-popover-header {
+  background: hsl(var(--muted) / 0.4);
+}
