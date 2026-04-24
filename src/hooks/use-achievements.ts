@@ -19,15 +19,15 @@ let inflight: Promise<AchievementMeta[]> | null = null;
 async function loadCatalog(): Promise<AchievementMeta[]> {
   if (cachedCatalog) return cachedCatalog;
   if (inflight) return inflight;
-  inflight = supabase
-    .from("achievements")
-    .select("id, title, description, icon, category, threshold, sort_order")
-    .order("sort_order", { ascending: true })
-    .then(({ data }) => {
-      cachedCatalog = (data ?? []) as AchievementMeta[];
-      inflight = null;
-      return cachedCatalog;
-    });
+  inflight = (async () => {
+    const { data } = await supabase
+      .from("achievements")
+      .select("id, title, description, icon, category, threshold, sort_order")
+      .order("sort_order", { ascending: true });
+    cachedCatalog = (data ?? []) as AchievementMeta[];
+    inflight = null;
+    return cachedCatalog;
+  })();
   return inflight;
 }
 
