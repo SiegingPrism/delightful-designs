@@ -1,31 +1,37 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/lib/store";
 
-interface AchievementMeta {
+export interface AchievementMeta {
   id: string;
   title: string;
   description: string;
   icon: string;
   category: string;
+  threshold: number;
+  sort_order: number;
 }
 
 let cachedCatalog: AchievementMeta[] | null = null;
-const subscribers = new Set<(c: AchievementMeta[]) => void>();
+let inflight: Promise<AchievementMeta[]> | null = null;
 
-async function loadCatalog() {
+async function loadCatalog(): Promise<AchievementMeta[]> {
   if (cachedCatalog) return cachedCatalog;
-  const { data } = await supabase
+  if (inflight) return inflight;
+  inflight = supabase
     .from("achievements")
-    .select("id, title, description, icon, category")
-    .order("sort_order", { ascending: true });
-  cachedCatalog = data ?? [];
-  subscribers.forEach((cb) => cb(cachedCatalog!));
-  return cachedCatalog;
+    .select("id, title, description, icon, category, threshold, sort_order")
+    .order("sort_order", { ascending: true })
+    .then(({ data }) => {
+      cachedCatalog = (data ?? []) as AchievementMeta[];
+      inflight = null;
+      return cachedCatalog;
+    });
+  return inflight;
 }
 
-/** Fire a toast whenever a new achievement appears on the user. */
+/** Fires a toast the first time a new achievement appears on the user. */
 export const useAchievementToasts = () => {
   const unlocked = useAppStore((s) => s.unlockedAchievements);
   const seen = useRef<Set<string> | null>(null);
@@ -55,22 +61,15 @@ export const useAchievementToasts = () => {
 };
 
 export const useAchievementCatalog = () => {
-  const ref = useRef<AchievementMeta[]>(cachedCatalog ?? []);
-  const force = useRef(0);
+  const [catalog, setCatalog] = useState<AchievementMeta[]>(cachedCatalog ?? []);
   useEffect(() => {
     let active = true;
-    const cb = (c: AchievementMeta[]) => {
-      if (!active) return;
-      ref.current = c;
-      force.current += 1;
-    };
-    if (cachedCatalog) cb(cachedCatalog);
-    subscribers.add(cb);
-    loadCatalog();
+    loadCatalog().then((c) => {
+      if (active) setCatalog(c);
+    });
     return () => {
       active = false;
-      subscribers.delete(cb);
     };
   }, []);
-  return ref.current;
+  return catalog;
 };

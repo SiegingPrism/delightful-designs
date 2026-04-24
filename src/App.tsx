@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAppStore } from "@/lib/store";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { ThemeUnlockWatcher } from "@/components/shared/ThemeUnlockWatcher";
+import { useAchievementToasts } from "@/hooks/use-achievements";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AnimatedBackground } from "@/components/theme/AnimatedBackground";
@@ -42,6 +43,7 @@ const ProtectedRoutes = () => {
   const bindUser = useAppStore((s) => s.bindUser);
   const hydrated = useAppStore((s) => s.hydrated);
   const onboardedAt = useAppStore((s) => s.onboardedAt);
+  useAchievementToasts();
 
   useEffect(() => {
     if (session?.user) {
