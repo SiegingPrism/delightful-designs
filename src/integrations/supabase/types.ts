@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          description: string
+          icon: string
+          id: string
+          sort_order: number
+          threshold: number
+          title: string
+        }
+        Insert: {
+          category?: string
+          description: string
+          icon?: string
+          id: string
+          sort_order?: number
+          threshold?: number
+          title: string
+        }
+        Update: {
+          category?: string
+          description?: string
+          icon?: string
+          id?: string
+          sort_order?: number
+          threshold?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      daily_stats: {
+        Row: {
+          created_at: string
+          date: string
+          focus_minutes: number
+          id: string
+          productivity_score: number
+          streak_kept: boolean
+          tasks_completed: number
+          tasks_planned: number
+          updated_at: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          focus_minutes?: number
+          id?: string
+          productivity_score?: number
+          streak_kept?: boolean
+          tasks_completed?: number
+          tasks_planned?: number
+          updated_at?: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          focus_minutes?: number
+          id?: string
+          productivity_score?: number
+          streak_kept?: boolean
+          tasks_completed?: number
+          tasks_planned?: number
+          updated_at?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       focus_sessions: {
         Row: {
           completed_at: string
@@ -159,11 +231,16 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          current_streak: number
           daily_focus_target_min: number
           display_name: string
           id: string
+          last_active_date: string | null
+          level: number
+          longest_streak: number
           onboarded_at: string | null
           primary_goal: string | null
+          tasks_completed_total: number
           theme: string
           total_xp: number
           updated_at: string
@@ -171,11 +248,16 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_streak?: number
           daily_focus_target_min?: number
           display_name?: string
           id?: string
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
           onboarded_at?: string | null
           primary_goal?: string | null
+          tasks_completed_total?: number
           theme?: string
           total_xp?: number
           updated_at?: string
@@ -183,11 +265,16 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_streak?: number
           daily_focus_target_min?: number
           display_name?: string
           id?: string
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
           onboarded_at?: string | null
           primary_goal?: string | null
+          tasks_completed_total?: number
           theme?: string
           total_xp?: number
           updated_at?: string
@@ -243,6 +330,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_events: {
         Row: {
           amount: number
@@ -278,7 +394,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      _user_focus_target: { Args: { p_user: string }; Returns: number }
+      check_achievements: { Args: { p_user: string }; Returns: undefined }
+      level_from_xp: { Args: { p_xp: number }; Returns: number }
+      recompute_daily_stats: {
+        Args: { p_date: string; p_user: string }
+        Returns: undefined
+      }
+      refresh_streak: { Args: { p_user: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
