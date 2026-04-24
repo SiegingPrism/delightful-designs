@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Flame, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAppStore, getLevel } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
+import { levelFromXp } from "@/lib/gamification";
 import { format } from "date-fns";
 
 const greeting = () => {
@@ -13,26 +14,34 @@ const greeting = () => {
   return "Late night flow";
 };
 
-const productivityState = (rate: number) => {
-  if (rate >= 80) return { label: "On fire", tone: "warm" as const };
-  if (rate >= 50) return { label: "Steady", tone: "primary" as const };
-  if (rate >= 20) return { label: "Warming up", tone: "accent" as const };
+const productivityState = (score: number) => {
+  if (score >= 80) return { label: "On fire", tone: "warning" as const };
+  if (score >= 50) return { label: "Steady", tone: "primary" as const };
+  if (score >= 20) return { label: "Warming up", tone: "accent" as const };
   return { label: "Just begun", tone: "muted" as const };
 };
 
 export const HeroCard = () => {
-  const { tasks, focusSessions, totalXP, userName } = useAppStore();
+  const tasks = useAppStore((s) => s.tasks);
+  const focusSessions = useAppStore((s) => s.focusSessions);
+  const totalXP = useAppStore((s) => s.totalXP);
+  const userName = useAppStore((s) => s.userName);
+  const dailyStats = useAppStore((s) => s.dailyStats);
+  const currentStreak = useAppStore((s) => s.currentStreak);
+
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const todays = tasks.filter((t) => (t.dueDate ?? "").startsWith(todayStr) || !t.dueDate);
   const completed = todays.filter((t) => t.completed).length;
-  const total = Math.max(todays.length, 1);
-  const completionRate = Math.round((completed / total) * 100);
   const focusToday = focusSessions
     .filter((s) => s.completedAt.startsWith(todayStr))
     .reduce((acc, s) => acc + s.durationMin, 0);
-  const score = Math.min(99, Math.round(completionRate * 0.6 + Math.min(focusToday, 120) * 0.3 + Math.min(totalXP, 200) * 0.05));
-  const state = productivityState(completionRate);
-  const { level, xpInLevel, xpToNext } = getLevel(totalXP);
+
+  const todayStat = dailyStats.find((d) => d.date === todayStr);
+  // Server-computed score is the source of truth; fall back to a quick approximation
+  // if the row hasn't been written yet (e.g. brand-new user, no actions today).
+  const score = todayStat?.productivityScore ?? 0;
+  const state = productivityState(score);
+  const info = levelFromXp(totalXP);
 
   return (
     <motion.section
@@ -77,7 +86,7 @@ export const HeroCard = () => {
               ? "Ready to make progress? Start with one task."
               : `You've completed ${completed} of ${todays.length} task${todays.length === 1 ? "" : "s"} today. Keep the momentum.`}
           </p>
-          <div className="flex items-center gap-3 mt-5">
+          <div className="flex items-center gap-3 mt-5 flex-wrap">
             <Link
               to="/focus"
               className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold shadow-elevated hover:shadow-glow transition-smooth"
@@ -85,17 +94,29 @@ export const HeroCard = () => {
               Start focus
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-smooth" />
             </Link>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${state.tone === "warm" ? "warning" : state.tone}/15 text-${state.tone === "warm" ? "warning" : state.tone === "muted" ? "muted-foreground" : state.tone}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold bg-${state.tone}/15 text-${state.tone === "muted" ? "muted-foreground" : state.tone}`}
+            >
               {state.label}
             </span>
+            {currentStreak > 0 && (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-warning/15 text-warning inline-flex items-center gap-1">
+                <Flame className="w-3 h-3" />
+                {currentStreak}d streak
+              </span>
+            )}
           </div>
         </div>
 
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 pt-5 border-t border-border/40">
-          <Stat label="Score" value={score.toString()} sub={`${completionRate}% done`} />
+          <Stat label="Score" value={score.toString()} sub={`Today · ${todayStat?.tasksCompleted ?? completed}/${todayStat?.tasksPlanned ?? todays.length} tasks`} />
           <Stat label="Focus" value={`${focusToday}m`} sub="today" />
-          <Stat label="XP" value={totalXP.toString()} sub={`${xpInLevel}/${xpToNext} → L${level + 1}`} />
+          <Stat
+            label={`Level ${info.level}`}
+            value={totalXP.toString()}
+            sub={`${info.xpInLevel}/${info.xpForNext - info.xpForCurrent} XP → L${info.level + 1}`}
+          />
         </div>
       </div>
     </motion.section>
