@@ -269,6 +269,10 @@ export const useAppStore = create<AppState>()(
             tasks: s.tasks.map((t) =>
               t.id === id ? { ...t, completed: willComplete, completedAt } : t,
             ),
+            tasksCompletedTotal: Math.max(
+              0,
+              s.tasksCompletedTotal + (willComplete ? 1 : -1),
+            ),
           }));
           if (willComplete) {
             award(
@@ -279,10 +283,15 @@ export const useAppStore = create<AppState>()(
           const userId = get().userId;
           if (userId) {
             safe(
-              supabase
-                .from("tasks")
-                .update({ completed: willComplete, completed_at: completedAt ?? null })
-                .eq("id", id),
+              (async () => {
+                await supabase
+                  .from("tasks")
+                  .update({ completed: willComplete, completed_at: completedAt ?? null })
+                  .eq("id", id);
+                // Server triggers will recompute daily_stats / streak / achievements.
+                // Pull the freshest counters so the UI matches the DB.
+                await refreshDerived(userId, set);
+              })(),
             );
           }
         },
