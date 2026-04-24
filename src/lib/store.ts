@@ -64,6 +64,21 @@ export interface XPEvent {
   at: string;
 }
 
+export interface DailyStat {
+  date: string;
+  tasksCompleted: number;
+  tasksPlanned: number;
+  focusMinutes: number;
+  xpEarned: number;
+  productivityScore: number;
+  streakKept: boolean;
+}
+
+export interface UserAchievement {
+  achievementId: string;
+  unlockedAt: string;
+}
+
 interface AppState {
   // Auth-bound state
   userId: string | null;
@@ -75,7 +90,13 @@ interface AppState {
   focusSessions: FocusSession[];
   healthLogs: HealthLog[];
   xpHistory: XPEvent[];
+  dailyStats: DailyStat[];
+  unlockedAchievements: UserAchievement[];
   totalXP: number;
+  level: number;
+  currentStreak: number;
+  longestStreak: number;
+  tasksCompletedTotal: number;
   userName: string;
 
   onboardedAt?: string;
