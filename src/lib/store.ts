@@ -197,10 +197,14 @@ export const useAppStore = create<AppState>()(
           sourceType: source.type,
           at: new Date().toISOString(),
         };
-        set((s) => ({
-          totalXP: s.totalXP + amount,
-          xpHistory: [event, ...s.xpHistory].slice(0, 200),
-        }));
+        set((s) => {
+          const newTotal = s.totalXP + amount;
+          return {
+            totalXP: newTotal,
+            level: levelFromXp(newTotal).level,
+            xpHistory: [event, ...s.xpHistory].slice(0, 200),
+          };
+        });
 
         const userId = get().userId;
         if (userId) {
